@@ -18,9 +18,8 @@ describe('POST /activate', () => {
       	"arkid":"ark:/99999/cp4mc9723sd",
         "version":"v0.2.0",
       	"endpoint":"dosingrecommendation",
-      	"url":['https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723se-v0.2.0.zip',
-            'https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-v0.2.0.zip',
-            'https://kgrid-activator.herokuapp.com/kos/99999/fk47h1x090/v0.2.0/phenotype.js'
+      	"url":['https://demo.kgrid.org/kgrid/manifest.json',
+          'https://demo.kgrid.org/kgrid/serverlist.json'
           ]
       }
       chai.request(server)
@@ -29,6 +28,24 @@ describe('POST /activate', () => {
           .end((err, res) => {
                 res.should.have.status(200);
                 res.body.should.have.property('endpoint_url');
+            done();
+          });
+    });
+    it('not found at resource URL', (done) => {
+      let input = {
+        "arkid":"ark:/99999/cp4mc9723sd",
+        "version":"v0.2.0",
+        "endpoint":"dosingrecommendation",
+        "url":['https://demo.kgrid.org/kgrid.manifest.json',
+          'https://demo.kgrid.org/kgrid/serverlist.json'
+          ]
+      }
+      chai.request(server)
+          .post('/activate')
+          .send(input)
+          .end((err, res) => {
+                res.should.have.status(200);
+                res.body.should.be.empty
             done();
           });
     });

@@ -1,9 +1,7 @@
 var express = require('express');
 var router = express.Router();
-
 const path= require('path')
 const downloadasset = require('./downloadasset')
-const unzip = require('./unzipko')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -22,17 +20,21 @@ router.post('/activate', function(req, res, next) {
     result.arkid = req.body.arkid
     result.version = req.body.version
     result.endpoint_url = req.protocol+"://"+req.get('host')+'/'+req.body.arkid.replace("ark:/","")+'/'+req.body.endpoint
-    result.artifact = []
     result.activated = (new Date()).toString()
+    result.artifact = []
     Promise.all(downloadasset.download_files(req.body.url, targetpath, idpath)).then(function (artifacts) {
       artifacts.forEach(function (e) {
-        var ext = path.extname(e)
-        result.artifact.push(targetpath+'/'+ path.basename(e, ext)+'/'+ req.body.artifact)
+        console.log(e)
+        if(typeof e === 'string'){
+          var ext = path.extname(e)
+          result.artifact.push(targetpath+idpath+'/'+ path.basename(e))
+        }
       })
       res.json(result);
     })
-    .catch(error => {
-      console.log(error.message);
+    .catch(errors => {
+      // console.log(errors);
+      res.send('Cannot download:'+errors)
     });
   }
 });

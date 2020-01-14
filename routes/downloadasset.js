@@ -31,6 +31,8 @@ function downloadPromise (asset_url, basePath, idpath) {
     download(asset_url, basePath, {'extract':true, 'filename':filename})
     .then(() => {
       resolve(asset_url);
+    }).catch(()=>{
+      reject(asset_url)
     });
   })
 }

@@ -13,25 +13,27 @@ router.get('/', function(req, res, next) {
 /* POST a KO to activate */
 router.post('/activate', function(req, res, next) {
   var targetpath = './shelf'
+  var idpath ='/'+req.body.arkid.replace("ark:/","").replace("/", "-")+'-'+req.body.version
   if(req.body.url==""){
     res.send('Error. Resource URL is missing.')
   }else {
     // Download resources
-    downloadasset.download_file(req.body.url)
-    .then(response => {
-      // Manage resources
-      unzip(response, targetpath)
-      // Send response
-      var result = {}
-      result.arkid = req.body.arkid
-      result.endpoint_url = req.protocol+"://"+req.get('host')+'/'+req.body.arkid.replace("ark:/","")+'/'+req.body.endpoint
-      result.artifact =targetpath+'/'+ path.basename(response, '.zip')+'/'+ req.body.artifact
-      result.activated = (new Date()).toString()
+    var result = {}
+    result.arkid = req.body.arkid
+    result.version = req.body.version
+    result.endpoint_url = req.protocol+"://"+req.get('host')+'/'+req.body.arkid.replace("ark:/","")+'/'+req.body.endpoint
+    result.artifact = []
+    result.activated = (new Date()).toString()
+    Promise.all(downloadasset.download_files(req.body.url, targetpath, idpath)).then(function (artifacts) {
+      artifacts.forEach(function (e) {
+        var ext = path.extname(e)
+        result.artifact.push(targetpath+'/'+ path.basename(e, ext)+'/'+ req.body.artifact)
+      })
       res.json(result);
     })
     .catch(error => {
-      res.send(error)
-    })
+      console.log(error.message);
+    });
   }
 });
 

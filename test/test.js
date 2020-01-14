@@ -16,8 +16,12 @@ describe('POST /activate', () => {
     it('it should return the endpoint URL', (done) => {
       let input = {
       	"arkid":"ark:/99999/cp4mc9723sd",
+        "version":"v0.2.0",
       	"endpoint":"dosingrecommendation",
-      	"url":'https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-v0.2.0.zip'
+      	"url":['https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723se-v0.2.0.zip',
+            'https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-v0.2.0.zip',
+            'https://kgrid-activator.herokuapp.com/kos/99999/fk47h1x090/v0.2.0/phenotype.js'
+          ]
       }
       chai.request(server)
           .post('/activate')

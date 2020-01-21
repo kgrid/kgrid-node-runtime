@@ -23,6 +23,9 @@ router.post('/activate', function(req, res, next) {
     result.arkid = req.body.arkid
     result.version = req.body.version
     result.endpoint_url = req.protocol+"://"+req.get('host')+opid
+    if(req.body.default===true){
+      result.endpoint_url = req.protocol+"://"+req.get('host')+default_opid
+    }
     result.activated = (new Date()).toString()
     result.artifact = []
     Promise.all(downloadasset.download_files(req.body.artifacts, targetpath, idpath)).then(function (artifacts) {
@@ -40,7 +43,6 @@ router.post('/activate', function(req, res, next) {
       res.json(result);
     })
     .catch(errors => {
-      // console.log(errors);
       res.send('Cannot download:'+errors)
     });
   }

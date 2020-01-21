@@ -47,26 +47,15 @@ router.post('/activate', function(req, res, next) {
 });
 
 router.post('/:naan/:name/:ep', function(req, res, next) {
-  var key = '/'+req.params.naan+"/"+req.params.name+'/'+req.params.ep
-  var func = require(req.app.locals.koreg[key])
-
-  var output = {}
-  output.ko="ark:/"+req.params.naan+"/"+req.params.name
-  if(func.constructor.name === "AsyncFunction"){
-    func(req.body).then(function(data){
-        output.result = data
-        res.send(output);
-    })
-  } else {
-    output.result = func(req.body)
-    res.send(output);
-  }
+  processEndpoint(req, res, next, '/'+req.params.naan+"/"+req.params.name+'/'+req.params.ep)
 });
 
 router.post('/:naan/:name/:version/:ep', function(req, res, next) {
-  var key = '/'+req.params.naan+"/"+req.params.name+'/'+req.params.version+'/'+req.params.ep
-  var func = require(req.app.locals.koreg[key])
+  processEndpoint(req, res, next, '/'+req.params.naan+"/"+req.params.name+'/'+req.params.version+'/'+req.params.ep)
+});
 
+function processEndpoint(req, res, next, key){
+  var func = require(req.app.locals.koreg[key])
   var output = {}
   output.ko="ark:/"+req.params.naan+"/"+req.params.name
   if(func.constructor.name === "AsyncFunction"){
@@ -78,6 +67,6 @@ router.post('/:naan/:name/:version/:ep', function(req, res, next) {
     output.result = func(req.body)
     res.send(output);
   }
-});
+}
 
 module.exports = router;

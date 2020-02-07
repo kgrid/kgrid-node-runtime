@@ -56,6 +56,11 @@ router.post('/:naan/:name/:version/:ep', function(req, res, next) {
   processEndpoint(req, res, next, '/'+req.params.naan+"/"+req.params.name+'/'+req.params.version+'/'+req.params.ep)
 });
 
+/* GET home page. */
+router.get('/:naan/:name/:version/service', function(req, res, next) {
+  servicebyid(req, res, next, req.params.naan+"-"+req.params.name+'-'+req.params.version)
+});
+
 function processEndpoint(req, res, next, key){
   var func = require(req.app.locals.koreg[key])
   var output = {}
@@ -71,4 +76,23 @@ function processEndpoint(req, res, next, key){
   }
 }
 
+function servicebyid (req, res, next, kopath){
+  var fileName = ''
+  var serviceYaml = path.join(__dirname, '../shelf',kopath,'service.yaml')
+  console.log(serviceYaml)
+  if(fs.existsSync(serviceYaml)){
+    fileName = serviceYaml
+    res.sendFile(fileName, function (err) {
+      if (err) {
+        console.log(err)
+        next(err)
+      } else {
+        console.log('Sent:', fileName)
+      }
+    })
+  }else
+  {
+    res.send('Not found')
+  }
+}
 module.exports = router;

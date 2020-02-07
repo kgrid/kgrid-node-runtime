@@ -17,7 +17,7 @@ describe('POST /activate', () => {
         "default":true,
       	"endpoint":"dosingrecommendation",
         "entry":"recommendation.js",
-      	"artifacts":['https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-v0.2.0.zip'
+      	"artifacts":['https://kgrid-lab.github.io/testobj/99999-cp4mc9723sd-v0.2.0.zip'
           ]
       }
       chai.request(server)

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "SET NODE_ENV=dev && nodemon ./bin/www",
+    "start": "nodemon ./bin/www",
     "debug": "nodemon --inspect ./bin/www",
     "test": "mocha --timeout 10000"
   },

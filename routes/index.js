@@ -6,7 +6,7 @@ const downloadasset = require('./downloadasset')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'KGrid NodeJS Runtime Adapter' });
+  res.render('index', { title: 'KGrid NodeJS Express Runtime' });
 });
 
 /* POST a KO to activate */

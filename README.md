@@ -2,4 +2,4 @@
 KGrid Adapter for NodeJS Runtime, enabled by express server
 
 
-Updated on February 10, 2020
+Updated on February 11, 2020

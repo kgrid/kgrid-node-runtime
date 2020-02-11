@@ -6,14 +6,21 @@ const downloadasset = require('./downloadasset')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
+  console.log(req)
   res.render('index', { title: 'KGrid NodeJS Express Runtime' });
 });
 
 /* GET home page. */
 router.get('/info', function(req, res, next) {
+  var protocol = "https"
+  if(process.env.NODE_ENV){
+    if(process.env.NODE_ENV.toLowerCase() == "dev") {
+      protocol = req.protocol
+    }
+  }
   var infoObj = {}
   infoObj.Status ="Up"
-  infoObj.Url = req.protocol+"://"+req.get('host')
+  infoObj.Url =  protocol +"://"+req.get('host')
   res.send(infoObj);
 });
 

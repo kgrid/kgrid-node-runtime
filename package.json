@@ -1,6 +1,10 @@
 {
   "name": "knode-exp-adapter",
   "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kgrid-lab/kgrid-node-express-adapter.git"
+  },
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
@@ -14,6 +18,7 @@
     "download": "^7.1.0",
     "express": "~4.16.1",
     "fs-extra": "^8.1.0",
+    "git-rev-sync": "^2.0.0",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "pug": "^2.0.4"

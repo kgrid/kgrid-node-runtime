@@ -3,11 +3,33 @@ var fs = require('fs-extra')
 var router = express.Router();
 const path= require('path')
 const downloadasset = require('./downloadasset')
+var git = require('git-rev-sync')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'KGrid NodeJS Express Runtime' });
 });
+
+/* GET home page. */
+router.get('/info', function(req, res, next) {
+  var infoObj = {}
+  infoObj.Status ="Up"
+  infoObj.Url = req.protocol+"://"+req.get('host')
+  infoObj.git = {}
+  infoObj.git.remote_url= git.remoteUrl()
+  infoObj.git.commit = git.short()
+  infoObj.git.date=git.date()
+  infoObj.git.message = git.message()
+  res.send(infoObj);
+});
+
+router.get('/endpoints', function(req, res, next) {
+  var epArray=[]
+  for(var key in req.app.locals.koreg){
+    epArray.push(req.protocol+"://"+req.get('host')+key)
+  }
+  res.send(epArray)
+})
 
 /* POST a KO to activate */
 router.post('/activate', function(req, res, next) {

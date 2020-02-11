@@ -3,7 +3,6 @@ var fs = require('fs-extra')
 var router = express.Router();
 const path= require('path')
 const downloadasset = require('./downloadasset')
-var git = require('git-rev-sync')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -15,11 +14,6 @@ router.get('/info', function(req, res, next) {
   var infoObj = {}
   infoObj.Status ="Up"
   infoObj.Url = req.protocol+"://"+req.get('host')
-  infoObj.git = {}
-  infoObj.git.remote_url= git.remoteUrl()
-  infoObj.git.commit = git.short()
-  infoObj.git.date=git.date()
-  infoObj.git.message = git.message()
   res.send(infoObj);
 });
 

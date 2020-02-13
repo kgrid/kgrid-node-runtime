@@ -2,11 +2,12 @@ var express = require('express');
 var fs = require('fs-extra')
 var router = express.Router();
 const path= require('path')
+const Hashids = require('hashids/cjs')
 const downloadasset = require('./downloadasset')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  console.log(req)
+  // console.log(req)
   res.render('index', { title: 'KGrid NodeJS Express Runtime' });
 });
 
@@ -71,6 +72,47 @@ router.post('/activate', function(req, res, next) {
   }
 });
 
+
+/* POST a deployment descriptor to activate */
+router.post('/deployments', function(req, res, next) {
+  var targetpath = './shelf'
+  var idpath = "kn"+hashid()
+  var protocol = "https"
+  if(process.env.NODE_ENV){
+    if(process.env.NODE_ENV.toLowerCase() == "dev") {
+      protocol = req.protocol
+    }
+  }
+  if(req.body.artifact==""){
+    res.send('Error. Resource URL is missing.')
+  }else {
+    // Download resources
+    var result = {}
+    result.endpoint_url = protocol+"://"+req.get('host')+"/"+idpath
+    result.activated = (new Date()).toString()
+    Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idpath)).then(function (artifacts) {
+      // artifacts.forEach(function (e) {
+      //   if(typeof e === 'string'){
+      //     var ext = path.extname(e)
+      //     result.artifact.push(targetpath+idpath+'/'+ path.basename(e))
+      //   }
+      // })
+      req.app.locals.koreg[idpath]='.'+targetpath+ '/'+idpath+'/'+ path.basename(req.body.artifact[0])
+      fs.writeJSONSync('koregistry.json', req.app.locals.koreg,{spaces: 4} )
+      res.json(result);
+    })
+    .catch(errors => {
+      res.send('Cannot download:'+errors)
+    });
+  }
+});
+
+router.post('/:ep', function(req, res, next) {
+  processEndpoint(req, res, next, req.params.ep)
+});
+
+
+
 router.post('/:naan/:name/:ep', function(req, res, next) {
   processEndpoint(req, res, next, '/'+req.params.naan+"/"+req.params.name+'/'+req.params.ep)
 });
@@ -84,10 +126,19 @@ router.get('/:naan/:name/:version/service', function(req, res, next) {
   servicebyid(req, res, next, req.params.naan+"-"+req.params.name+'-'+req.params.version)
 });
 
+
+function hashid(){
+  var ts = new Date()
+  const hashids = new Hashids(ts.toString(), 10)
+  return hashids.encode(1,2)
+}
+
+
+
 function processEndpoint(req, res, next, key){
   var func = require(req.app.locals.koreg[key])
   var output = {}
-  output.ko="ark:/"+req.params.naan+"/"+req.params.name
+  // output.ko="ark:/"+req.params.naan+"/"+req.params.name
   if(func.constructor.name === "AsyncFunction"){
     func(req.body).then(function(data){
         output.result = data

@@ -28,7 +28,7 @@ router.get('/info', function(req, res, next) {
 router.get('/endpoints', function(req, res, next) {
   var epArray=[]
   for(var key in req.app.locals.koreg){
-    epArray.push(req.protocol+"://"+req.get('host')+key)
+    epArray.push(req.protocol+"://"+req.get('host')+'/'+key)
   }
   res.send(epArray)
 })

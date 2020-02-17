@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+var fs = require('fs-extra')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var koreg = require("./koregistry.json")
@@ -11,12 +11,14 @@ var cors = require('cors')
 
 var app = express();
 
+var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(cors())
-app.use(logger('dev'));
+app.use(logger('dev'))
+app.use(logger(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms ":user-agent"', { stream: accessLogStream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

@@ -17,7 +17,7 @@ describe('POST /deployments', () => {
         "default":true,
       	"endpoint":"dosingrecommendation",
         "entry":"recommendation.js",
-      	"artifacts":['https://kgrid-lab.github.io/testobj/99999-cp4mc9723sd-v0.2.0.zip'
+      	"artifact":['https://kgrid-lab.github.io/testobj/99999-cp4mc9723sd-v0.2.0.zip'
           ]
       }
       chai.request(server)
@@ -36,14 +36,14 @@ describe('POST /deployments', () => {
         "default":true,
       	"endpoint":"dosingrecommendation",
         "entry":"recommendation.js",
-      	"artifacts":['https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-0.2.0.zip'
+      	"artifact":['https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-0.2.0.zip'
           ]
       }
       chai.request(server)
           .post('/deployments')
           .send(input)
           .end((err, res) => {
-                res.should.have.status(200);
+                res.should.have.status(404);
                 // res.body.should.be.empty
             done();
           });
@@ -52,14 +52,13 @@ describe('POST /deployments', () => {
       let input = {
       	"arkid":"ark:/hello/world",
       	"endpoint":"welcome",
-        "entry":"recommendation.js",
-      	"artifacts":""
+        "entry":"recommendation.js"
       }
       chai.request(server)
           .post('/deployments')
           .send(input)
           .end((err, res) => {
-            res.body.should.be.empty;
+            res.should.have.status(400);
             done();
           });
     });

@@ -74,8 +74,8 @@ router.post('/deployments', function(req, res, next) {
   var targetpath = './shelf'
   var idpath = "kn"+hashid()
   var protocol = getProtocol(req)
-  if(req.body.artifact==""){
-    res.send('Error. Resource URL is missing.')
+  if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
+    res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
     var result = {}
@@ -93,7 +93,7 @@ router.post('/deployments', function(req, res, next) {
       res.json(result);
     })
     .catch(errors => {
-      res.send('Cannot download:'+errors)
+      res.status(404).send({"Error":'Cannot download '+errors})
     });
   }
 });

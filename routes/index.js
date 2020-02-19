@@ -72,7 +72,7 @@ router.get('/endpoints', function(req, res, next) {
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   var targetpath = './shelf'
-  var idpath = "kn"+hashid()
+  var idpath = "kn"+hashid(path.basename(req.body.artifact[0]))
   var protocol = getProtocol(req)
   if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
     res.status(400).send({"Error":"Bad Request"})
@@ -118,9 +118,9 @@ router.post('/:ep', function(req, res, next) {
 // });
 
 
-function hashid(){
+function hashid(filename){
   var ts = new Date()
-  const hashids = new Hashids(ts.toString(), 10)
+  const hashids = new Hashids(ts.toString()+filename, 10)
   return hashids.encode(1,2)
 }
 

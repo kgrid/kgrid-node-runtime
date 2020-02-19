@@ -72,12 +72,13 @@ router.get('/endpoints', function(req, res, next) {
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   var targetpath = './shelf'
-  var idpath = "kn"+hashid(path.basename(req.body.artifact[0]))
+  var idpath = "kn"
   var protocol = getProtocol(req)
   if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
     res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
+    idpath = "kn"+hashid(path.basename(req.body.artifact[0]))
     var result = {}
     result.endpoint_url = protocol+"://"+req.get('host')+"/"+idpath
     result.activated = (new Date()).toString()

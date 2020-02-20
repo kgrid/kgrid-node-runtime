@@ -6,10 +6,14 @@ var logger = require('morgan');
 var fs = require('fs-extra')
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var koreg = require("./koregistry.json")
 var cors = require('cors')
-
 var app = express();
+
+if(!fs.pathExistsSync("./koregistry.json")){
+  fs.ensureFileSync("./koregistry.json")
+  fs.writeJSONSync('koregistry.json', {},{spaces: 4} )
+}
+var koreg = require("./koregistry.json")
 
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 // view engine setup

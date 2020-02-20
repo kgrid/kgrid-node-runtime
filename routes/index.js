@@ -72,6 +72,7 @@ router.get('/endpoints', function(req, res, next) {
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   var targetpath = './shelf'
+  fs.ensureDirSync(targetpath)
   var idpath = "kn"
   var protocol = getProtocol(req)
   if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
@@ -89,7 +90,7 @@ router.post('/deployments', function(req, res, next) {
       //     result.artifact.push(targetpath+idpath+'/'+ path.basename(e))
       //   }
       // })
-      req.app.locals.koreg[idpath]='.'+targetpath+ '/'+idpath+'/'+ path.basename(req.body.artifact[0])
+      req.app.locals.koreg[idpath]='.'+targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
       fs.writeJSONSync('koregistry.json', req.app.locals.koreg,{spaces: 4} )
       res.json(result);
     })

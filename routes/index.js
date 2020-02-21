@@ -102,7 +102,7 @@ router.post('/deployments', function(req, res, next) {
 });
 
 router.post('/:ep', function(req, res, next) {
-  if(req.app.locals.koreg[key]){
+  if(req.app.locals.koreg[req.params.ep]){
     processEndpoint(req, res, next, req.params.ep)
   } else {
     res.status(404).send({"Error": 'Cannot found the endpoint: '+key})

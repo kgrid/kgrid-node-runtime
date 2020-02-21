@@ -24,8 +24,7 @@ describe('POST /deployments', () => {
           .post('/deployments')
           .send(input)
           .end((err, res) => {
-                res.should.have.status(200);
-                // res.body.should.have.property('endpoint_url');
+            res.should.have.status(200);
             done();
           });
     });
@@ -43,8 +42,7 @@ describe('POST /deployments', () => {
           .post('/deployments')
           .send(input)
           .end((err, res) => {
-                res.should.have.status(404);
-                // res.body.should.be.empty
+            res.should.have.status(404);
             done();
           });
     });

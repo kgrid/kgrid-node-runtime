@@ -71,6 +71,7 @@ router.get('/endpoints', function(req, res, next) {
 
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
+  console.log(req.ip)
   var targetpath = './shelf'
   fs.ensureDirSync(targetpath)
   var idpath = "kn"
@@ -101,7 +102,11 @@ router.post('/deployments', function(req, res, next) {
 });
 
 router.post('/:ep', function(req, res, next) {
-  processEndpoint(req, res, next, req.params.ep)
+  if(req.app.locals.koreg[key]){
+    processEndpoint(req, res, next, req.params.ep)
+  } else {
+    res.status(404).send({"Error": 'Cannot found the endpoint: '+key})
+  }
 });
 
 //

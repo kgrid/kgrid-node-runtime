@@ -11,9 +11,9 @@ var usersRouter = require('./routes/users');
 var app = express();
 
 const optionDefinitions = [
-  { name: 'shelf', alias: 's', type: String, defaultOption: true }
+  { name: 'shelf', alias: 's', type: String, defaultOption: false }
 ]
-const options = commandLineArgs(optionDefinitions)
+const options = commandLineArgs(optionDefinitions, { partial: true })
 
 var shelfPath = options.shelf || path.join(process.cwd(),'shelf')
 fs.ensureDirSync(shelfPath)

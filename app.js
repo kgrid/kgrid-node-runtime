@@ -1,19 +1,37 @@
-var createError = require('http-errors');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const fs = require('fs-extra')
+const cors = require('cors')
+const commandLineArgs = require('command-line-args')
 var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var fs = require('fs-extra')
+var createError = require('http-errors');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var cors = require('cors')
 var app = express();
 
-if(!fs.pathExistsSync("./koregistry.json")){
-  fs.ensureFileSync("./koregistry.json")
-  fs.writeJSONSync('koregistry.json', {},{spaces: 4} )
+const optionDefinitions = [
+  { name: 'shelf', alias: 's', type: String, defaultOption: true }
+]
+const options = commandLineArgs(optionDefinitions)
+
+var shelfPath = options.shelf || path.join(process.cwd(),'shelf')
+fs.ensureDirSync(shelfPath)
+var registryFile = path.join(shelfPath,"koregistry.json")
+if(!fs.pathExistsSync(registryFile)){
+  fs.ensureFileSync(registryFile)
+  fs.writeJSONSync(registryFile, {},{spaces: 4} )
 }
-var koreg = require("./koregistry.json")
+var packageFile = path.join(shelfPath,"package.json")
+if(!fs.pathExistsSync(packageFile)){
+  fs.ensureFileSync(packageFile)
+  fs.writeJSONSync(packageFile, {},{spaces: 4} )
+}
+
+
+var koreg = require(registryFile)
+app.locals.koreg = koreg
+app.locals.shelfPath = shelfPath
 
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 // view engine setup
@@ -21,7 +39,9 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(cors())
-app.use(logger('dev'))
+if(process.env.DEBUG){
+  app.use(logger('dev'))
+}
 app.use(logger(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms ":user-agent"', { stream: accessLogStream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -31,7 +51,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-app.locals.koreg = koreg
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

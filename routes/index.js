@@ -21,6 +21,14 @@ router.get('/info', function(req, res, next) {
   res.send(infoObj);
 });
 
+router.get('/context', function(req, res,next){
+    res.send(req.app.locals.context)
+})
+
+router.get('/koregistry', function(req, res,next){
+    res.send(req.app.locals.koreg)
+})
+
 router.get('/endpoints', function(req, res, next) {
   var protocol = getProtocol(req)
   var epArray=[]
@@ -36,18 +44,26 @@ router.post('/deployments', function(req, res, next) {
   var targetpath = req.app.locals.shelfPath
   fs.ensureDirSync(targetpath)
   var idpath = "kn"
+  var id = ""
+  var version = ""
   var protocol = getProtocol(req)
   if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
     res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
     idpath = "kn"+hashid(path.basename(req.body.artifact[0]))
+    id = req.body.identifier || idpath
+    version = req.body.version || idpath
     var result = {}
     result.endpoint_url = protocol+"://"+req.get('host')+"/"+idpath
     result.activated = (new Date()).toString()
     Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idpath)).then(function (artifacts) {
+      req.app.locals.context[id]={}
+      req.app.locals.context[id][version]=idpath
       req.app.locals.koreg[idpath]=targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
       fs.writeJSONSync(path.join(req.app.locals.shelfPath,'koregistry.json'), req.app.locals.koreg,{spaces: 4} )
+      fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), req.app.locals.context,{spaces: 4} )
+
       res.json(result);
     })
     .catch(errors => {
@@ -84,7 +100,8 @@ router.post('/dependencies', function(req, res, next) {
 
 router.post('/:ep', function(req, res, next) {
   if(req.app.locals.koreg[req.params.ep]){
-    processEndpoint(req, res, next, req.params.ep)
+    // processEndpoint(req, res, next, req.params.ep)
+    processEndpointwithexecutor(req, res, next, req.params.ep)
   } else {
     res.status(404).send({"Error": 'Cannot found the endpoint: '+req.params.ep})
   }
@@ -120,6 +137,34 @@ function processEndpoint(req, res, next, key){
     output.result = func(req.body)
     res.send(output);
   }
+}
+
+function processEndpointwithexecutor(req, res, next, key){
+  var func = require(req.app.locals.koreg[key])
+  var output = {}
+  if(func.constructor.name === "AsyncFunction"){
+    processAsyncExecutor(func, req.body).then(function(data){
+        output.result = data
+        res.send(output);
+    })
+  } else {
+    output.result = processSyncExecutor(func, req.body)
+    res.send(output);
+  }
+}
+
+function processAsyncExecutor(func, input){
+  return new Promise((resolve,reject)=> {
+    func(req.body).then(function(data){
+      resolve(data)
+    }).catch((error)=>{
+      reject(error)
+    });
+  })
+}
+
+function processSyncExecutor(func,input){
+  return func(input)
 }
 
 module.exports = router;

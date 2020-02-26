@@ -22,16 +22,20 @@ if(!fs.pathExistsSync(registryFile)){
   fs.ensureFileSync(registryFile)
   fs.writeJSONSync(registryFile, {},{spaces: 4} )
 }
+var contextFile = path.join(shelfPath,"context.json")
+if(!fs.pathExistsSync(contextFile)){
+  fs.ensureFileSync(contextFile)
+  fs.writeJSONSync(contextFile, {},{spaces: 4} )
+}
 var packageFile = path.join(shelfPath,"package.json")
 if(!fs.pathExistsSync(packageFile)){
   fs.ensureFileSync(packageFile)
   fs.writeJSONSync(packageFile, {},{spaces: 4} )
 }
 
-
-var koreg = require(registryFile)
-app.locals.koreg = koreg
 app.locals.shelfPath = shelfPath
+app.locals.koreg = require(registryFile)
+app.locals.context = require(contextFile)
 
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 // view engine setup

@@ -6,6 +6,8 @@ const Hashids = require('hashids/cjs')
 const downloadasset = require('./downloadasset')
 const shelljs = require('shelljs')
 
+const executor = require('../public/javascripts/executor.js')
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   // console.log(req)
@@ -46,6 +48,7 @@ router.post('/deployments', function(req, res, next) {
   var idpath = "kn"
   var id = ""
   var version = ""
+  var endpoint = ""
   var protocol = getProtocol(req)
   if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
     res.status(400).send({"Error":"Bad Request"})
@@ -54,12 +57,19 @@ router.post('/deployments', function(req, res, next) {
     idpath = "kn"+hashid(path.basename(req.body.artifact[0]))
     id = req.body.identifier || idpath
     version = req.body.version || idpath
+    endpoint = req.body.endpoint || idpath
     var result = {}
     result.endpoint_url = protocol+"://"+req.get('host')+"/"+idpath
     result.activated = (new Date()).toString()
     Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idpath)).then(function (artifacts) {
-      req.app.locals.context[id]={}
-      req.app.locals.context[id][version]=idpath
+      req.app.locals.context[idpath] = {}
+      req.app.locals.context[idpath].arkid = id
+      req.app.locals.context[idpath].version = version
+      req.app.locals.context[idpath].endpoint = endpoint
+      req.app.locals.context[idpath].src = targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
+      const exec = Object.create(executor)
+      exec.init(req.app.locals.context[idpath].src)
+      req.app.locals.context[idpath].executor = exec
       req.app.locals.koreg[idpath]=targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
       fs.writeJSONSync(path.join(req.app.locals.shelfPath,'koregistry.json'), req.app.locals.koreg,{spaces: 4} )
       fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), req.app.locals.context,{spaces: 4} )
@@ -140,31 +150,17 @@ function processEndpoint(req, res, next, key){
 }
 
 function processEndpointwithexecutor(req, res, next, key){
-  var func = require(req.app.locals.koreg[key])
+  var func = req.app.locals.context[key].executor
   var output = {}
-  if(func.constructor.name === "AsyncFunction"){
-    processAsyncExecutor(func, req.body).then(function(data){
+  if (func.isAsync()) {
+    func.execute(req.body).then(function(data){
         output.result = data
         res.send(output);
     })
   } else {
-    output.result = processSyncExecutor(func, req.body)
+    output.result = func.execute(req.body)
     res.send(output);
   }
-}
-
-function processAsyncExecutor(func, input){
-  return new Promise((resolve,reject)=> {
-    func(req.body).then(function(data){
-      resolve(data)
-    }).catch((error)=>{
-      reject(error)
-    });
-  })
-}
-
-function processSyncExecutor(func,input){
-  return func(input)
 }
 
 module.exports = router;

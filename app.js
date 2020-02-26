@@ -15,6 +15,8 @@ const optionDefinitions = [
 ]
 const options = commandLineArgs(optionDefinitions, { partial: true })
 
+const executor = require('./public/javascripts/executor.js')
+
 var shelfPath = options.shelf || path.join(process.cwd(),'shelf')
 fs.ensureDirSync(shelfPath)
 var registryFile = path.join(shelfPath,"koregistry.json")
@@ -36,7 +38,13 @@ if(!fs.pathExistsSync(packageFile)){
 app.locals.shelfPath = shelfPath
 app.locals.koreg = require(registryFile)
 app.locals.context = require(contextFile)
-
+if(Object.keys(app.locals.context).length>0){
+  for (var key in app.locals.context){
+    const exec = Object.create(executor);
+    exec.init(app.locals.context[key].src);
+    app.locals.context[key].executor = exec
+  }
+}
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

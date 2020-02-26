@@ -13,14 +13,16 @@ chai.use(chaiHttp);
 describe('POST /deployments', () => {
     it('it should return the endpoint URL', (done) => {
       let input = {
-      	"arkid":"ark:/99999/cp4mc9723sd",
-        "version":"v0.2.0",
-        "default":true,
-      	"endpoint":"dosingrecommendation",
-        "entry":"recommendation.js",
-      	"artifact":['https://kgrid-lab.github.io/testobj/99999-cp4mc9723sd-v0.2.0.zip'
-          ]
-      }
+	"identifier":"ark:/99999/crcscreening",
+	"version":"v1.0.0",
+	"endpoint":"qalygain",
+	"artifact":[
+		"https://kgrid-lab.github.io/testobj/crcscreening/src/config.json",
+		"https://kgrid-lab.github.io/testobj/crcscreening/src/index.js",
+		"https://kgrid-lab.github.io/testobj/crcscreening/src/50.csv"
+    ],
+    "entry":"index.js"
+}
       chai.request(server)
           .post('/deployments')
           .send(input)

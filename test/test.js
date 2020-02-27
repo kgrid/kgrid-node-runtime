@@ -22,7 +22,6 @@ describe('POST /deployments', () => {
           ],
           "entry":"bmi.js"
       }
-}
       chai.request(server)
           .post('/deployments')
           .send(input)

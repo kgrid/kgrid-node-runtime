@@ -13,14 +13,15 @@ chai.use(chaiHttp);
 describe('POST /deployments', () => {
     it('it should return the endpoint URL', (done) => {
       let input = {
-	"identifier":"ark:/99999/crcscreening",
-	"version":"v1.0.0",
-	"endpoint":"qalygain",
-	"artifact":[
-		"https://kgrid-lab.github.io/testobj/crcscreening/src/config.json",
-		"https://kgrid-lab.github.io/testobj/crcscreening/src/index.js"
-    ],
-    "entry":"index.js"
+	"identifier":"ark:/ri/bmi",
+        "version":"v2.0",
+        "default":true,
+      	"endpoint":"bmicalc",
+        "artifact":[
+      		"https://kgrid-lab.github.io/testobj/ri-bmicalc-v2.0/bmi.js"
+          ],
+          "entry":"bmi.js"
+      }
 }
       chai.request(server)
           .post('/deployments')

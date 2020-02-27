@@ -18,8 +18,7 @@ describe('POST /deployments', () => {
 	"endpoint":"qalygain",
 	"artifact":[
 		"https://kgrid-lab.github.io/testobj/crcscreening/src/config.json",
-		"https://kgrid-lab.github.io/testobj/crcscreening/src/index.js",
-		"https://kgrid-lab.github.io/testobj/crcscreening/src/50.csv"
+		"https://kgrid-lab.github.io/testobj/crcscreening/src/index.js"
     ],
     "entry":"index.js"
 }

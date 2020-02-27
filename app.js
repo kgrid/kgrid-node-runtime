@@ -4,18 +4,18 @@ const logger = require('morgan');
 const fs = require('fs-extra')
 const cors = require('cors')
 const commandLineArgs = require('command-line-args')
+const executor = require('./lib/executor')
 var express = require('express');
 var createError = require('http-errors');
+var app = express();
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var app = express();
 
 const optionDefinitions = [
   { name: 'shelf', alias: 's', type: String, defaultOption: false }
 ]
 const options = commandLineArgs(optionDefinitions, { partial: true })
 
-const executor = require('./public/javascripts/executor.js')
 
 var shelfPath = options.shelf || path.join(process.cwd(),'shelf')
 fs.ensureDirSync(shelfPath)
@@ -37,12 +37,18 @@ if(!fs.pathExistsSync(packageFile)){
 
 app.locals.shelfPath = shelfPath
 app.locals.koreg = require(registryFile)
-app.locals.context = require(contextFile)
-if(Object.keys(app.locals.context).length>0){
-  for (var key in app.locals.context){
+global.cxt = {
+  map: {},
+  getExecutor (key) {
+    return this.map[key].executor
+  }
+}
+global.cxt.map = require(contextFile)
+if(Object.keys(global.cxt.map).length>0){
+  for (var key in global.cxt.map){
     const exec = Object.create(executor);
-    exec.init(app.locals.context[key].src);
-    app.locals.context[key].executor = exec
+    exec.init(global.cxt.map[key].src);
+    global.cxt.map[key].executor = exec
   }
 }
 var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })

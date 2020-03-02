@@ -32,7 +32,7 @@ if(!fs.pathExistsSync(contextFile)){
 var packageFile = path.join(shelfPath,"package.json")
 if(!fs.pathExistsSync(packageFile)){
   fs.ensureFileSync(packageFile)
-  fs.writeJSONSync(packageFile, {},{spaces: 4} )
+  fs.writeJSONSync(packageFile, {	"name":"expressactivatorshelf"},{spaces: 4} )
 }
 
 app.locals.shelfPath = shelfPath

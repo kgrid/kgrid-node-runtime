@@ -1,29 +1,27 @@
+const fs = require('fs-extra')
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const fs = require('fs-extra')
 const cors = require('cors')
+const { v4: uuidv4 } = require('uuid')
 const commandLineArgs = require('command-line-args')
-const executor = require('./lib/executor')
-var uuid = require('node-uuid')
-
 var express = require('express');
 var createError = require('http-errors');
+
+const executor = require('./lib/executor')
+var usersRouter = require('./routes/users');
+var indexRouter = require('./routes/index');
 
 morgan.token('id', function getId (req) {
   return req.id
 })
 
-
 var app = express();
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
 const optionDefinitions = [
   { name: 'shelf', alias: 's', type: String, defaultOption: false }
 ]
 const options = commandLineArgs(optionDefinitions, { partial: true })
-
 
 var shelfPath = options.shelf || path.join(process.cwd(),'shelf')
 fs.ensureDirSync(shelfPath)
@@ -66,6 +64,7 @@ app.set('view engine', 'pug');
 
 app.use(cors())
 app.use(assignId)
+
 if(process.env.DEBUG){
   app.use(morgan('dev'))
 }
@@ -79,7 +78,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -90,13 +88,13 @@ app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
-
   // render the error page
   res.status(err.status || 500);
   res.render('error');
 });
+
 function assignId (req, res, next) {
-  req.id = uuid.v4()
+  req.id = uuidv4()
   next()
 }
 

@@ -7,14 +7,12 @@ const shelljs = require('shelljs')
 const executor = require('../lib/executor')
 var router = express.Router();
 
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  // console.log(req)
   res.render('index', { title: 'KGrid NodeJS Express Runtime' });
 });
 
-/* GET home page. */
+/* GET INFO */
 router.get('/info', function(req, res, next) {
   var protocol = getProtocol(req)
   var infoObj = {}
@@ -22,11 +20,6 @@ router.get('/info', function(req, res, next) {
   infoObj.Url =  protocol +"://"+req.get('host')
   res.send(infoObj);
 });
-
-// router.get('/echo', function(req, res, next){
-//     console.log(req)
-//     res.send(req.body)
-// })
 
 router.get('/context', function(req, res,next){
     res.send(global.cxt)
@@ -47,7 +40,6 @@ router.get('/endpoints', function(req, res, next) {
 
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
-
   var targetpath = req.app.locals.shelfPath
   fs.ensureDirSync(targetpath)
   var idpath = "kn"
@@ -86,7 +78,7 @@ router.post('/deployments', function(req, res, next) {
   }
 });
 
-/* POST dependencies */
+/* POST dependencies to install*/
 router.post('/dependencies', function(req, res, next) {
   if(req.body.dependencies){
     shelljs.cd(path.join(process.cwd(),'shelf'))
@@ -111,6 +103,7 @@ router.post('/dependencies', function(req, res, next) {
     res.status(400).send({"Error":"No dependency specified."})
   }
 })
+
 router.get('/mem', function(req, res, next){
   const used = process.memoryUsage();
   for (let key in used) {
@@ -119,19 +112,14 @@ router.get('/mem', function(req, res, next){
   res.send(used)
 })
 
-router.post('/tst', function(req, res, next){
-  processEndpointwithGlobalCxtExecutor("knxW84nTAdyz", req.body).then(function(output){
-    output.request_id=req.id
-    res.send(output)
-  }).catch(function(error){
-    res.send({"Error":error})
-  })
-})
-
 router.post('/:ep', function(req, res, next) {
   if(req.app.locals.koreg[req.params.ep]){
-    // processEndpoint(req, res, next, req.params.ep)
-    processEndpointwithexecutor(req, res, next, req.params.ep)
+    processEndpointwithGlobalCxtExecutor(req.params.ep, req.body).then(function(output){
+      output.request_id=req.id
+      res.send(output)
+    }).catch(function(error){
+      res.status(400).send({"Error":error})
+    })
   } else {
     res.status(404).send({"Error": 'Cannot found the endpoint: '+req.params.ep})
   }
@@ -153,32 +141,6 @@ function getProtocol(req) {
   return protocol
 }
 
-function processEndpoint(req, res, next, key){
-  var func = require(req.app.locals.koreg[key])
-  var output = {}
-  // output.ko="ark:/"+req.params.naan+"/"+req.params.name
-  if(func.constructor.name === "AsyncFunction"){
-    func(req.body).then(function(data){
-        output.request_id= req.id
-        output.result = data
-        res.send(output);
-    })
-  } else {
-    output.result = func(req.body)
-    res.send(output);
-  }
-}
-
-function processEndpointwithexecutor(req, res, next, key){
-  var func =global.cxt.map[key].executor
-  var output = {}
-  func.execute(req.body).then(function(data){
-        output.request_id= req.id
-        output.result = data
-        res.send(output);
-    })
-}
-
 function processEndpointwithGlobalCxtExecutor(key, input){
   var func = global.cxt.getExecutor(key)
   var output = {}
@@ -190,10 +152,6 @@ function processEndpointwithGlobalCxtExecutor(key, input){
         reject(error)
       })
     })
-}
-
-function appContext(key) {
-  return global.cxt[key]
 }
 
 module.exports = router;

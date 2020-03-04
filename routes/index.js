@@ -121,6 +121,7 @@ router.get('/mem', function(req, res, next){
 
 router.post('/tst', function(req, res, next){
   processEndpointwithGlobalCxtExecutor("knxW84nTAdyz", req.body).then(function(output){
+    output.request_id=req.id
     res.send(output)
   }).catch(function(error){
     res.send({"Error":error})
@@ -158,6 +159,7 @@ function processEndpoint(req, res, next, key){
   // output.ko="ark:/"+req.params.naan+"/"+req.params.name
   if(func.constructor.name === "AsyncFunction"){
     func(req.body).then(function(data){
+        output.request_id= req.id
         output.result = data
         res.send(output);
     })
@@ -171,6 +173,7 @@ function processEndpointwithexecutor(req, res, next, key){
   var func =global.cxt.map[key].executor
   var output = {}
   func.execute(req.body).then(function(data){
+        output.request_id= req.id
         output.result = data
         res.send(output);
     })

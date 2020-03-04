@@ -1,12 +1,20 @@
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const morgan = require('morgan');
 const fs = require('fs-extra')
 const cors = require('cors')
 const commandLineArgs = require('command-line-args')
 const executor = require('./lib/executor')
+var uuid = require('node-uuid')
+
 var express = require('express');
 var createError = require('http-errors');
+
+morgan.token('id', function getId (req) {
+  return req.id
+})
+
+
 var app = express();
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -57,10 +65,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(cors())
+app.use(assignId)
 if(process.env.DEBUG){
-  app.use(logger('dev'))
+  app.use(morgan('dev'))
 }
-app.use(logger(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms ":user-agent"', { stream: accessLogStream }));
+app.use(morgan(':id [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms', { stream: accessLogStream }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -85,5 +95,9 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+function assignId (req, res, next) {
+  req.id = uuid.v4()
+  next()
+}
 
 module.exports = app;

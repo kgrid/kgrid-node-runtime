@@ -84,7 +84,7 @@ router.post('/dependencies', function(req, res, next) {
     shelljs.cd(path.join(process.cwd(),'shelf'))
     var hasError = false
     for(var key in req.body.dependencies){
-        if(req.body.dependencies[key].startsWith('http')){
+        if(req.body.dependencies[key].startsWith('http') | req.body.dependencies[key].startsWith('https')){
           if(shelljs.error(shelljs.exec('npm install --save '+req.body.dependencies[key]))) {
             hasError = true
           }
@@ -106,9 +106,9 @@ router.post('/dependencies', function(req, res, next) {
 
 router.get('/mem', function(req, res, next){
   const used = process.memoryUsage();
-  for (let key in used) {
-    console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-  }
+  // for (let key in used) {
+  //   console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
+  // }
   res.send(used)
 })
 

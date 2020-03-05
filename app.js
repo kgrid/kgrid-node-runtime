@@ -45,8 +45,18 @@ app.locals.shelfPath = shelfPath
 app.locals.koreg = require(registryFile)
 global.cxt = {
   map: {},
-  getExecutor (key) {
+  getExecutor(key) {
     return this.map[key].executor
+  },
+  getExecutorByID(arkid, version, endpoint){
+
+    for(var key in this.map) {
+      var e =this.map[key]
+      if ((e.arkid==arkid) && (e.version == version) && (e.endpoint == endpoint)){
+        return e.executor
+      }
+    }
+    return null
   }
 }
 global.cxt.map = require(contextFile)

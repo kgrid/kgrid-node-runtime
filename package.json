@@ -25,7 +25,8 @@
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "pug": "^2.0.4",
-    "shelljs": "^0.8.3"
+    "shelljs": "^0.8.3",
+    "uuid": "^7.0.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -41,7 +42,6 @@
     ]
   },
   "engines": {
-    "node": ">=10.0.0",
-    "npm": ">=6.0.0"
+    "node": "10.17.0"
   }
 }

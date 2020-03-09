@@ -13,13 +13,14 @@ chai.use(chaiHttp);
 describe('POST /deployments', () => {
     it('it should return the endpoint URL', (done) => {
       let input = {
-      	"arkid":"ark:/99999/cp4mc9723sd",
-        "version":"v0.2.0",
+	"identifier":"ark:/ri/bmi",
+        "version":"v2.0",
         "default":true,
-      	"endpoint":"dosingrecommendation",
-        "entry":"recommendation.js",
-      	"artifact":['https://kgrid-lab.github.io/testobj/99999-cp4mc9723sd-v0.2.0.zip'
-          ]
+      	"endpoint":"bmicalc",
+        "artifact":[
+      		"https://kgrid-lab.github.io/testobj/ri-bmicalc-v2.0/bmi.js"
+          ],
+          "entry":"bmi.js"
       }
       chai.request(server)
           .post('/deployments')

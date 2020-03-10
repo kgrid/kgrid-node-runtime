@@ -25,14 +25,11 @@ router.get('/context', function(req, res,next){
     res.send(global.cxt)
 })
 
-router.get('/koregistry', function(req, res,next){
-    res.send(req.app.locals.koreg)
-})
 
 router.get('/endpoints', function(req, res, next) {
   var protocol = getProtocol(req)
   var epArray=[]
-  for(var key in req.app.locals.koreg){
+  for(var key in global.cxt.map){
     epArray.push(protocol+"://"+req.get('host')+'/'+key)
   }
   res.send(epArray)
@@ -67,8 +64,6 @@ router.post('/deployments', function(req, res, next) {
       const exec = Object.create(executor)
       exec.init(global.cxt.map[idpath].src)
       global.cxt.map[idpath].executor = exec
-      req.app.locals.koreg[idpath]=targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
-      fs.writeJSONSync(path.join(req.app.locals.shelfPath,'koregistry.json'), req.app.locals.koreg,{spaces: 4} )
       fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), global.cxt.map,{spaces: 4} )
       res.json(result);
     })
@@ -113,7 +108,7 @@ router.get('/mem', function(req, res, next){
 })
 
 router.post('/:ep', function(req, res, next) {
-  if(req.app.locals.koreg[req.params.ep]){
+  if(global.cxt.map[req.params.ep]){
     processEndpointwithGlobalCxtExecutor(req.params.ep, req.body).then(function(output){
       output.request_id=req.id
       res.send(output)

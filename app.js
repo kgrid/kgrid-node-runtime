@@ -25,11 +25,7 @@ const options = commandLineArgs(optionDefinitions, { partial: true })
 
 var shelfPath = options.shelf || path.join(process.cwd(),'shelf')
 fs.ensureDirSync(shelfPath)
-var registryFile = path.join(shelfPath,"koregistry.json")
-if(!fs.pathExistsSync(registryFile)){
-  fs.ensureFileSync(registryFile)
-  fs.writeJSONSync(registryFile, {},{spaces: 4} )
-}
+
 var contextFile = path.join(shelfPath,"context.json")
 if(!fs.pathExistsSync(contextFile)){
   fs.ensureFileSync(contextFile)
@@ -42,7 +38,7 @@ if(!fs.pathExistsSync(packageFile)){
 }
 
 app.locals.shelfPath = shelfPath
-app.locals.koreg = require(registryFile)
+
 global.cxt = {
   map: {},
   getExecutor(key) {

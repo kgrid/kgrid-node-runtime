@@ -25,14 +25,11 @@ router.get('/context', function(req, res,next){
     res.send(global.cxt)
 })
 
-router.get('/koregistry', function(req, res,next){
-    res.send(req.app.locals.koreg)
-})
 
 router.get('/endpoints', function(req, res, next) {
   var protocol = getProtocol(req)
   var epArray=[]
-  for(var key in req.app.locals.koreg){
+  for(var key in global.cxt.map){
     epArray.push(protocol+"://"+req.get('host')+'/'+key)
   }
   res.send(epArray)
@@ -42,7 +39,7 @@ router.get('/endpoints', function(req, res, next) {
 router.post('/deployments', function(req, res, next) {
   var targetpath = req.app.locals.shelfPath
   fs.ensureDirSync(targetpath)
-  var idpath = "kn"
+  var idPath = "kn"
   var id = ""
   var version = ""
   var endpoint = ""
@@ -51,37 +48,45 @@ router.post('/deployments', function(req, res, next) {
     res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
-    idpath = "kn"+hashid(path.basename(req.body.artifact[0]))
-    id = req.body.identifier || idpath
-    version = req.body.version || idpath
-    endpoint = req.body.endpoint || idpath
+    idPath = "kn"+hashid(path.basename(req.body.artifact[0]))
+    id = req.body.identifier || idPath
+    version = req.body.version || idPath
+    endpoint = req.body.endpoint || idPath
     var result = {}
-    result.endpoint_url = protocol+"://"+req.get('host')+"/"+idpath
+    result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath
     result.activated = (new Date()).toString()
-    Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idpath)).then(function (artifacts) {
-      global.cxt.map[idpath] = {}
-      global.cxt.map[idpath].arkid = id
-      global.cxt.map[idpath].version = version
-      global.cxt.map[idpath].endpoint = endpoint
-      global.cxt.map[idpath].src = targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
+    Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idPath)).then(function (artifacts) {
+      var entryfile = targetpath+ '/'+idPath+'/'+ path.basename(req.body.entry)
       const exec = Object.create(executor)
-      exec.init(global.cxt.map[idpath].src)
-      global.cxt.map[idpath].executor = exec
-      req.app.locals.koreg[idpath]=targetpath+ '/'+idpath+'/'+ path.basename(req.body.entry)
-      fs.writeJSONSync(path.join(req.app.locals.shelfPath,'koregistry.json'), req.app.locals.koreg,{spaces: 4} )
-      fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), global.cxt.map,{spaces: 4} )
-      res.json(result);
+      if(exec.init(entryfile)){
+        global.cxt.map[idPath] = {}
+        global.cxt.map[idPath].arkid = id
+        global.cxt.map[idPath].version = version
+        global.cxt.map[idPath].endpoint = endpoint
+        global.cxt.map[idPath].src = entryfile
+        global.cxt.map[idPath].executor = exec
+        fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), global.cxt.map,{spaces: 4} )
+        res.json(result);
+      } else {
+        downloadasset.cleanup(targetpath, idPath)
+        res.status(404).send({"Error":'Cannot find the dependency. Please install the dependency first.'})
+      }
     })
     .catch(errors => {
-      res.status(404).send({"Error":'Cannot download '+errors})
+      setTimeout(()=> {
+        downloadasset.cleanup(targetpath, idPath)
+        res.status(404).send({"Error":'Cannot download '+errors})
+      }, 500)
     });
   }
 });
 
 /* POST dependencies to install*/
 router.post('/dependencies', function(req, res, next) {
+  var targetpath = req.app.locals.shelfPath
+  fs.ensureDirSync(targetpath)
   if(req.body.dependencies){
-    shelljs.cd(path.join(process.cwd(),'shelf'))
+    shelljs.cd(targetpath)
     var hasError = false
     for(var key in req.body.dependencies){
         if(req.body.dependencies[key].startsWith('http') | req.body.dependencies[key].startsWith('https')){
@@ -113,7 +118,7 @@ router.get('/mem', function(req, res, next){
 })
 
 router.post('/:ep', function(req, res, next) {
-  if(req.app.locals.koreg[req.params.ep]){
+  if(global.cxt.map[req.params.ep]){
     processEndpointwithGlobalCxtExecutor(req.params.ep, req.body).then(function(output){
       output.request_id=req.id
       res.send(output)

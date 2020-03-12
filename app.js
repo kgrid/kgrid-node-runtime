@@ -44,11 +44,11 @@ global.cxt = {
   getExecutor(key) {
     return this.map[key].executor
   },
-  getExecutorByID(arkid, version, endpoint){
+  getExecutorByID(identifier, version, endpoint){
 
     for(var key in this.map) {
       var e =this.map[key]
-      if ((e.arkid==arkid) && (e.version == version) && (e.endpoint == endpoint)){
+      if ((e.identifier==identifier) && (e.version == version) && (e.endpoint == endpoint)){
         return e.executor
       }
     }

@@ -60,7 +60,7 @@ router.post('/deployments', function(req, res, next) {
       const exec = Object.create(executor)
       if(exec.init(entryfile)){
         global.cxt.map[idPath] = {}
-        global.cxt.map[idPath].arkid = id
+        global.cxt.map[idPath].identifier = id
         global.cxt.map[idPath].version = version
         global.cxt.map[idPath].endpoint = endpoint
         global.cxt.map[idPath].src = entryfile

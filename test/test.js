@@ -32,7 +32,7 @@ describe('POST /deployments', () => {
     });
     it('not found at resource URL', (done) => {
       let input = {
-        "arkid":"ark:/99999/cp4mc9723s",
+        "identifier":"ark:/99999/cp4mc9723s",
         "version":"v0.2.0",
         "default":true,
       	"endpoint":"dosingrecommendation",
@@ -50,7 +50,7 @@ describe('POST /deployments', () => {
     });
     it('missing Resource URL', (done) => {
       let input = {
-      	"arkid":"ark:/hello/world",
+      	"identifier":"ark:/hello/world",
       	"endpoint":"welcome",
         "entry":"recommendation.js"
       }

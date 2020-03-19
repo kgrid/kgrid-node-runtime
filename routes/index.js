@@ -38,6 +38,7 @@ router.get('/endpoints', function(req, res, next) {
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   var targetpath = req.app.locals.shelfPath
+  // console.log(req.body)
   fs.ensureDirSync(targetpath)
   var idPath = "kn"
   var id = ""
@@ -48,7 +49,8 @@ router.post('/deployments', function(req, res, next) {
     res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
-    idPath = "kn"+hashid(path.basename(req.body.artifact[0]))
+    idPath = "kn"+hashid(req.body.artifact[0])
+    // console.log(idPath)
     id = req.body.identifier || idPath
     version = req.body.version || idPath
     endpoint = req.body.endpoint || idPath
@@ -69,7 +71,7 @@ router.post('/deployments', function(req, res, next) {
         res.json(result);
       } else {
         downloadasset.cleanup(targetpath, idPath)
-        res.status(404).send({"Error":'Cannot find the dependency. Please install the dependency first.'})
+        res.status(404).send({"Error":'Cannot initiate the executor.'})
       }
     })
     .catch(errors => {

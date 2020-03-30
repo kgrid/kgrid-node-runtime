@@ -1,5 +1,5 @@
 var express = require('express');
-const Hashids = require('hashids/cjs')
+var Hashids = require('hashids/cjs')
 const downloadasset = require('../lib/downloadasset')
 var fs = require('fs-extra')
 const path= require('path')
@@ -25,7 +25,6 @@ router.get('/context', function(req, res,next){
     res.send(global.cxt)
 })
 
-
 router.get('/endpoints', function(req, res, next) {
   var protocol = getProtocol(req)
   var epArray=[]
@@ -38,8 +37,6 @@ router.get('/endpoints', function(req, res, next) {
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   var targetpath = req.app.locals.shelfPath
-  // console.log(req.body)
-  fs.ensureDirSync(targetpath)
   var idPath = "kn"
   var id = ""
   var version = ""
@@ -49,8 +46,11 @@ router.post('/deployments', function(req, res, next) {
     res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
-    idPath = "kn"+hashid(req.body.artifact[0])
-    // console.log(idPath)
+    var ts = Date.now()
+    // console.log(req.body.artifact[0]+ts.toString())
+    var hashids = new Hashids(req.body.identifier, 10)
+    idPath = "kn"+hashids.encode(ts)
+    console.log(idPath)
     id = req.body.identifier || idPath
     version = req.body.version || idPath
     endpoint = req.body.endpoint || idPath
@@ -132,11 +132,6 @@ router.post('/:ep', function(req, res, next) {
   }
 });
 
-function hashid(filename){
-  var ts = new Date()
-  const hashids = new Hashids(ts.toString()+filename, 10)
-  return hashids.encode(1,2)
-}
 
 function getProtocol(req) {
   var protocol = "https"

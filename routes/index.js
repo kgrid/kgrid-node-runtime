@@ -36,6 +36,7 @@ router.get('/endpoints', function(req, res, next) {
 
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
+  console.log(req.body)
   var targetpath = req.app.locals.shelfPath
   var idPath = "kn"
   var id = ""

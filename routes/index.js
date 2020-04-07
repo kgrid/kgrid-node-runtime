@@ -34,6 +34,9 @@ router.get('/endpoints', function(req, res, next) {
   res.send(epArray)
 })
 
+router.post('/endpoints', function(req, res, next) {
+  res.send(req.body)
+})
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   console.log(req.body)

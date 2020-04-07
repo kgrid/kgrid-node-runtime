@@ -11,7 +11,7 @@ var createError = require('http-errors');
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
 var indexRouter = require('./routes/index');
-
+var configJSON = require('./appproperties.json')
 morgan.token('id', function getId (req) {
   return req.id
 })
@@ -42,14 +42,26 @@ app.locals.shelfPath = shelfPath
 global.cxt = {
   map: {},
   getExecutor(key) {
-    return this.map[key].executor
+    if(this.map[key]){
+      return this.map[key].executor
+    } else {
+      return null
+    }
   },
   getExecutorByID(identifier, version, endpoint){
-
     for(var key in this.map) {
       var e =this.map[key]
       if ((e.identifier==identifier) && (e.version == version) && (e.endpoint == endpoint)){
         return e.executor
+      }
+    }
+    return null
+  },
+  getKeyByID(identifier, version, endpoint){
+    for(var key in this.map) {
+      var e =this.map[key]
+      if ((e.identifier==identifier) && (e.version == version) && (e.endpoint == endpoint)){
+        return key
       }
     }
     return null

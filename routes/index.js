@@ -43,14 +43,12 @@ router.post('/deployments', function(req, res, next) {
   var version = ""
   var endpoint = ""
   var protocol = getProtocol(req)
-  if(req.body.artifact==null | req.body.artifact=="" | req.body.entry ==null ){
+  if(invalidInput(req.body)){
     res.status(400).send({"Error":"Bad Request"})
   }else {
     // Download resources
-    var ts = Date.now()
-    // console.log(req.body.artifact[0]+ts.toString())
-    var hashids = new Hashids(req.body.identifier, 10)
-    idPath = "kn"+hashids.encode(ts)
+    var hashObj = endpointhash(req.body)
+    idPath = hashObj.hashid
     console.log(idPath)
     id = req.body.identifier || idPath
     version = req.body.version || idPath
@@ -68,6 +66,7 @@ router.post('/deployments', function(req, res, next) {
         global.cxt.map[idPath].endpoint = endpoint
         global.cxt.map[idPath].src = entryfile
         global.cxt.map[idPath].executor = exec
+        global.cxt.map[idPath].activated = result.activated
         fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), global.cxt.map,{spaces: 4} )
         res.json(result);
       } else {
@@ -157,4 +156,31 @@ function processEndpointwithGlobalCxtExecutor(key, input){
     })
 }
 
+function endpointhash(idObject){
+  var hashObj = {}
+  var existingKey = global.cxt.getKeyByID(idObject.identifier,idObject.version,idObject.endpoint)
+  var endpointhashid = "kn"
+  if(existingKey!=null){
+    endpointhashid = existingKey
+  }else{
+    var ts = Date.now()
+    var hashids = new Hashids(hashObj.identifier, 10)
+    endpointhashid = "kn"+hashids.encode(ts)
+  }
+  hashObj.id = idObject.identifier || endpointhashid
+  hashObj.version = idObject.version || endpointhashid
+  hashObj.endpoint = idObject.endpoint || endpointhashid
+  hashObj.hashid = endpointhashid
+  return hashObj
+}
+
+function invalidInput(obj){
+  var bool = false
+  bool = bool | (obj.artifact == null) | (obj.artifact == "")
+  bool = bool | (obj.entry == null)
+  bool = bool | (obj.identifier ==null)
+  bool = bool | (obj.version ==null)
+  bool = bool | (obj.endpoint ==null)
+  return bool
+}
 module.exports = router;

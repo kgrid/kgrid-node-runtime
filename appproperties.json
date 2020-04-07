@@ -1,0 +1,4 @@
+{
+  "kgrid_activator_urls":["https://kgrid-activator.herokuapp.com"],
+  "log_level":"debug"
+}

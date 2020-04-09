@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid')
 const commandLineArgs = require('command-line-args')
 var express = require('express');
 var createError = require('http-errors');
+const axios = require('axios').default;
 
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
@@ -115,5 +116,16 @@ function assignId (req, res, next) {
   req.id = uuidv4()
   next()
 }
+
+axios.post("http://localhost:8082/register",
+    {"type": "node", "url": "http://localhost:3000"})
+    .then(function (response) {
+      console.log("Registered remote environment in activator with resp " + response);
+    })
+    .catch(function (error) {
+      console.log("Error: could not register remote env " + error);
+    });
+
+axios.get("http://localhost:8082/activate");
 
 module.exports = app;

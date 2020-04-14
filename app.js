@@ -117,10 +117,10 @@ function assignId (req, res, next) {
   next()
 }
 
-axios.post("http://localhost:8082/register",
+axios.post("http://localhost:8082/proxy/environments",
     {"type": "node", "url": "http://localhost:3000"})
     .then(function (response) {
-      console.log("Registered remote environment in activator with resp " + response);
+      console.log("Registered remote environment in activator with resp " + JSON.stringify(response.data));
     })
     .catch(function (error) {
       console.log("Error: could not register remote env " + error);

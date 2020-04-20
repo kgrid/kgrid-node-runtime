@@ -35,8 +35,25 @@ router.get('/endpoints', function(req, res, next) {
 })
 
 router.post('/endpoints', function(req, res, next) {
-  res.send(req.body)
+  var keyArray =[]
+  var output ={removed:[],nonexisting:[]}
+  if(req.body.clearAll){
+    keyArray = JSON.parse(JSON.stringify(Object.keys(global.cxt.map)))
+  } else {
+    keyArray = (req.body.keys!=null) ? JSON.parse(JSON.stringify(req.body.keys)) : []
+  }
+  keyArray.forEach(function(e){
+    if(global.cxt.map[e]){
+      delete global.cxt.map[e]
+      downloadasset.cleanup(req.app.locals.shelfPath, e)
+      fs.writeJSONSync(path.join(req.app.locals.shelfPath,'context.json'), global.cxt.map,{spaces: 4} )
+    } else {
+
+    }
+  })
+  res.send(keyArray)
 })
+
 /* POST a deployment descriptor to activate */
 router.post('/deployments', function(req, res, next) {
   console.log(req.body)

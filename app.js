@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid')
 const commandLineArgs = require('command-line-args')
 var express = require('express');
 var createError = require('http-errors');
+const axios = require('axios').default;
 
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
@@ -115,5 +116,16 @@ function assignId (req, res, next) {
   req.id = uuidv4()
   next()
 }
+
+axios.post(configJSON.kgrid_adapter_proxy_url + "/proxy/environments", //"http://localhost:8082/proxy/environments",
+    {"type": "node", "url": configJSON.environment_self_url})
+    .then(function (response) {
+      console.log("Registered remote environment in activator with resp " + JSON.stringify(response.data));
+    })
+    .catch(function (error) {
+      console.log("Error: could not register remote env " + error);
+    });
+
+axios.get(configJSON.kgrid_adapter_proxy_url + "/activate");
 
 module.exports = app;

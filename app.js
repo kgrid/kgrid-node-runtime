@@ -117,8 +117,8 @@ function assignId (req, res, next) {
   next()
 }
 
-axios.post("http://localhost:8082/proxy/environments",
-    {"type": "node", "url": "http://localhost:3000"})
+axios.post(configJSON.kgrid_adapter_proxy_url + "/proxy/environments", //"http://localhost:8082/proxy/environments",
+    {"type": "node", "url": configJSON.environment_self_url})
     .then(function (response) {
       console.log("Registered remote environment in activator with resp " + JSON.stringify(response.data));
     })
@@ -126,6 +126,6 @@ axios.post("http://localhost:8082/proxy/environments",
       console.log("Error: could not register remote env " + error);
     });
 
-axios.get("http://localhost:8082/activate");
+axios.get(configJSON.kgrid_adapter_proxy_url + "/activate");
 
 module.exports = app;

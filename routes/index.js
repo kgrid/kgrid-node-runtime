@@ -77,8 +77,21 @@ router.post('/deployments', function(req, res, next) {
     result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath
     result.activated = (new Date()).toString()
     Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idPath)).then(function (artifacts) {
-      var entryfile = targetpath+ '/'+idPath+'/'+ path.basename(req.body.entry)
-      const exec = Object.create(executor)
+      artifacts.forEach(function(arti){
+        var pkgfile = path.basename(arti)
+        if(pkgfile=="package.json"){
+          console.log(pkgfile);
+          var pkgJson = require(path.join(targetpath, idPath, pkgfile))
+          var dep = pkgJson.dependencies
+          if(dep){
+            console.log(dep)
+            var hasError = installDependencies(targetpath, dep)
+          }
+        }
+      })
+      // Construct the Executor
+      var entryfile = targetpath+ '/'+idPath+'/'+ path.basename(req.body.entry);
+      const exec = Object.create(executor);
       if(exec.init(entryfile)){
         global.cxt.map[idPath] = {}
         global.cxt.map[idPath].identifier = id
@@ -108,23 +121,11 @@ router.post('/dependencies', function(req, res, next) {
   var targetpath = req.app.locals.shelfPath
   fs.ensureDirSync(targetpath)
   if(req.body.dependencies){
-    shelljs.cd(targetpath)
-    var hasError = false
-    for(var key in req.body.dependencies){
-        if(req.body.dependencies[key].startsWith('http') | req.body.dependencies[key].startsWith('https')){
-          if(shelljs.error(shelljs.exec('npm install --save '+req.body.dependencies[key]))) {
-            hasError = true
-          }
-        } else {
-          if(shelljs.error(shelljs.exec('npm install --save '+key))) {
-            hasError = true
-          }
-        }
-      }
-      if(hasError){
-        res.status(400).send({"Error":"Failed installing dependencies"})
-      } else {
-        res.send({"Info":"Dependencies installed."})
+    var hasError = installDependencies(targetpath, req.body.dependencies)
+    if(hasError){
+      res.status(400).send({"Error":"Failed installing dependencies"})
+    } else {
+      res.send({"Info":"Dependencies installed."})
     }
   } else {
     res.status(400).send({"Error":"No dependency specified."})
@@ -163,6 +164,23 @@ function getProtocol(req) {
   return protocol
 }
 
+function installDependencies(targetpath, dependencies){
+  shelljs.cd(targetpath)
+  var hasError = false
+  for(var key in dependencies){
+      if(dependencies[key].startsWith('http') | dependencies[key].startsWith('https')){
+        if(shelljs.error(shelljs.exec('npm install --save '+dependencies[key]))) {
+          hasError = true
+        }
+      } else {
+        if(shelljs.error(shelljs.exec('npm install --save '+key))) {
+          hasError = true
+        }
+      }
+    }
+  return hasError
+}
+
 function processEndpointwithGlobalCxtExecutor(key, input){
   var func = global.cxt.getExecutor(key)
   var output = {}
@@ -171,6 +189,7 @@ function processEndpointwithGlobalCxtExecutor(key, input){
         output.result = data
         resolve(output);
       }).catch(error=>{
+        console.log(error)
         reject(error)
       })
     })

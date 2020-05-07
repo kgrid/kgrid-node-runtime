@@ -62,6 +62,8 @@ router.post('/deployments', function(req, res, next) {
   var id = "";
   var version = "";
   var endpoint = "";
+  var baseUrl = "";
+  // var artifacts =[];
   var protocol = getProtocol(req);
   if(invalidInput(req.body)){
     res.status(400).send({"Error":"Bad Request"});
@@ -73,10 +75,14 @@ router.post('/deployments', function(req, res, next) {
     id = req.body.identifier || idPath;
     version = req.body.version || idPath;
     endpoint = req.body.endpoint || idPath;
+    baseUrl = req.body.baseUrl || "";
+    // req.body.artifact.forEach(function(arti){
+    //   artifacts.push(arti);
+    // });
     var result = {};
     result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath;
     result.activated = (new Date()).toString();
-    Promise.all(downloadasset.download_files(req.body.artifact, targetpath, idPath)).then(function (artifacts) {
+    Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {
       artifacts.forEach(function(arti){
         var pkgfile = path.basename(arti);
         if(pkgfile=="package.json"){
@@ -90,7 +96,8 @@ router.post('/deployments', function(req, res, next) {
         }
       });
       // Construct the Executor
-      var entryfile = targetpath+ '/'+idPath+'/'+ path.basename(req.body.entry);
+      var entryfile = (baseUrl=="") ? targetpath+ '/'+idPath+'/'+ path.basename(req.body.entry)
+                                    : path.join(targetpath, idPath, req.body.entry);
       var exec = Object.create(executor);
       if(exec.init(entryfile)){
         global.cxt.map[idPath] = {};

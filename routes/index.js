@@ -82,6 +82,7 @@ router.post('/deployments', function(req, res, next) {
     var result = {};
     result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath;
     result.activated = (new Date()).toString();
+    downloadasset.cleanup(targetpath, idPath);
     Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {
       artifacts.forEach(function(arti){
         var pkgfile = path.basename(arti);

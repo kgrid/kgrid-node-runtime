@@ -12,11 +12,12 @@ const axios = require('axios').default;
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
 var indexRouter = require('./routes/index');
-var configJSON = require('./appproperties.json')
+var config_prod = require('./appproperties.json')
+var config_dev = require('./appproperties_dev.json')
 morgan.token('id', function getId (req) {
   return req.id
 })
-
+var configJSON = (!process.env.NODE_ENV.toLowerCase()=='dev') ? config_prod : config_dev;
 var app = express();
 
 const optionDefinitions = [
@@ -112,21 +113,24 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-function assignId (req, res, next) {
-  req.id = uuidv4()
-  next()
-}
-
 axios.post(configJSON.kgrid_adapter_proxy_url + "/proxy/environments", //"http://localhost:8082/proxy/environments",
     {"type": "node", "url": configJSON.environment_self_url})
     .then(function (response) {
       console.log("Registered remote environment in activator at " + configJSON.kgrid_adapter_proxy_url + " with resp "
           + JSON.stringify(response.data));
+      axios.get(configJSON.kgrid_adapter_proxy_url + "/activate")
+        .catch(function (error) {
+            console.log(error.message)
+          });
     })
     .catch(function (error) {
-      console.log("Error: could not register remote env " + error);
+      console.log(error.message);
     });
 
-axios.get(configJSON.kgrid_adapter_proxy_url + "/activate");
+
+function assignId (req, res, next) {
+  req.id = uuidv4()
+  next()
+}
 
 module.exports = app;

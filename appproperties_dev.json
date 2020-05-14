@@ -1,0 +1,6 @@
+{
+  "kgrid_activator_urls":["https://kgrid-activator.herokuapp.com"],
+  "log_level":"debug",
+  "kgrid_adapter_proxy_url": "http://localhost:8080",
+  "environment_self_url": "http://localhost:3000"
+}

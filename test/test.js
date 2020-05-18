@@ -11,7 +11,7 @@ let should = chai.should();
 chai.use(chaiHttp);
 
 describe('POST /deployments', () => {
-    it('it should return the endpoint URL', (done) => {
+    it('it should return the endpoint ', (done) => {
       let input = {
 	"identifier":"ark:/ri/bmi",
         "version":"v2.0",

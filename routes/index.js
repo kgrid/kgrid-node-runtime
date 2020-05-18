@@ -76,11 +76,10 @@ router.post('/deployments', function(req, res, next) {
     version = req.body.version || idPath;
     endpoint = req.body.endpoint || idPath;
     baseUrl = req.body.baseUrl || "";
-    // req.body.artifact.forEach(function(arti){
-    //   artifacts.push(arti);
-    // });
     var result = {};
-    result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath;
+    result.baseUrl = protocol+"://"+req.get('host');
+    result.endpoint = idPath;
+    // result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath;
     result.activated = (new Date()).toString();
     downloadasset.cleanup(targetpath, idPath);
     Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {

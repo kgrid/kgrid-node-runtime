@@ -17,7 +17,12 @@ var config_dev = require('./appproperties_dev.json')
 morgan.token('id', function getId (req) {
   return req.id
 })
-var configJSON = (!process.env.NODE_ENV.toLowerCase()=='dev') ? config_prod : config_dev;
+var configJSON = config_prod;
+if(process.env.NODE_ENV) {
+  if(process.env.NODE_ENV.toLowerCase()=='dev'){
+    configJSON = config_dev;
+  }
+}
 var app = express();
 
 const optionDefinitions = [

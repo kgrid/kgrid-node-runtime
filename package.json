@@ -1,6 +1,8 @@
 {
-  "name": "@kgrid/nodeRuntime",
+  "name": "@kgrid/noderuntime",
   "version": "0.1.0",
+  "description": "KGrid Node runtime",
+  "author":"kgrid",
   "repository": {
     "type": "git",
     "url": "https://github.com/kgrid-lab/kgrid-node-express-adapter.git"

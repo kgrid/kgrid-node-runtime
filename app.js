@@ -25,6 +25,10 @@ if (process.env.NODE_ENV) {
 }
 const kgridAdpaterProxyUrl = process.env.KGRID_ADAPTER_PROXY_URL || configJSON.kgrid_adapter_proxy_url;
 const environmentSelfUrl = process.env.ENVIRONMENT_SELF_URL || configJSON.environment_self_url;
+console.log(`Setting Urls from Environment Variables: 
+\nKGRID_ADAPTER_PROXY_URL: ${process.env.KGRID_ADAPTER_PROXY_URL}
+\nENVIRONMENT_SELF_URL: ${process.env.ENVIRONMENT_SELF_URL}
+`)
 var app = express();
 
 const optionDefinitions = [

@@ -17,12 +17,8 @@ var config_dev = require('./appproperties_dev.json')
 morgan.token('id', function getId(req) {
   return req.id
 })
-var configJSON = config_prod;
-if (process.env.NODE_ENV) {
-  if (process.env.NODE_ENV.toLowerCase() == 'dev') {
-    configJSON = config_dev;
-  }
-}
+var configJSON = config_dev;
+
 const kgridAdpaterProxyUrl = process.env.KGRID_ADAPTER_PROXY_URL || configJSON.kgrid_adapter_proxy_url;
 const environmentSelfUrl = process.env.ENVIRONMENT_SELF_URL || configJSON.environment_self_url;
 console.log(`Setting Urls from Environment Variables:

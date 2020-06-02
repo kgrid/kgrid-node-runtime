@@ -1,6 +1,6 @@
 {
   "name": "@kgrid/noderuntime",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "KGrid Node runtime",
   "author": "kgrid",
   "repository": {
@@ -47,7 +47,7 @@
     ]
   },
   "engines": {
-    "node": "10.17.0"
+    "node": ">=10.5.0"
   },
   "publishConfig": { "registry": "https://npm.pkg.github.com/" }
 }

@@ -12,19 +12,18 @@ const axios = require('axios').default;
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
 var indexRouter = require('./routes/index');
-var config_prod = require('./appproperties.json')
-var config_dev = require('./appproperties_dev.json')
+var configJSON = require('./appproperties.json');
+
 morgan.token('id', function getId(req) {
-  return req.id
+  return req.id;
 })
-var configJSON = config_dev;
 
 const kgridAdpaterProxyUrl = process.env.KGRID_ADAPTER_PROXY_URL || configJSON.kgrid_adapter_proxy_url;
 const environmentSelfUrl = process.env.ENVIRONMENT_SELF_URL || configJSON.environment_self_url;
 console.log(`Setting Urls from Environment Variables:
 \nKGRID_ADAPTER_PROXY_URL: ${kgridAdpaterProxyUrl}
 \nENVIRONMENT_SELF_URL: ${environmentSelfUrl}
-`)
+`);
 var app = express();
 
 const optionDefinitions = [

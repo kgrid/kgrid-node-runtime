@@ -1,6 +1,6 @@
 {
   "name": "@kgrid/noderuntime",
-  "version": "0.1.5",
+  "version": "0.1.6-rc",
   "description": "KGrid Node runtime",
   "author": "kgrid",
   "repository": {

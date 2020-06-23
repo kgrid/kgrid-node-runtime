@@ -1,8 +1,8 @@
 module.exports = {
-  base: '/kgrid-node-express-adapter/',
+  base: '/kgrid-node-runtime/',
   title: 'KGrid NodeJS Express Runtime',
   themeConfig: {
-    repo: 'kgrid-lab/kgrid-node-express-adapter',
+    repo: 'kgrid-lab/kgrid-node-runtime',
     lastUpdated: 'Last Updated',
     nav: [
       { text: 'KGrid.org', link: 'https://kgrid.org' },

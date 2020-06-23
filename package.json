@@ -5,7 +5,7 @@
   "author": "kgrid",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kgrid/kgrid-node-express-adapter.git"
+    "url": "https://github.com/kgrid/kgrid-node-runtime.git"
   },
   "bin": {
     "kgrid-node": "./bin/www"

@@ -1,7 +1,7 @@
-# KGrid NodeJS Express Runtime
+# KGrid Node Runtime
 
-[![GitHub release](https://img.shields.io/github/release/kgrid-lab/kgrid-node-express-adapter.svg)](https://github.com/kgrid-lab/kgrid-node-express-adapter/releases/)
-[![CircleCI](https://circleci.com/gh/kgrid-lab/kgrid-node-express-adapter.svg?style=svg)](https://circleci.com/gh/kgrid-lab/kgrid-node-express-adapter)
+[![GitHub release](https://img.shields.io/github/release/kgrid/kgrid-node-runtime.svg)](https://github.com/kgrid/kgrid-node-runtime/releases/)
+[![CircleCI](https://circleci.com/gh/kgrid/kgrid-node-runtime.svg?style=svg)](https://circleci.com/gh/kgrid-lab/kgrid-node-runtime)
 
 ##
 

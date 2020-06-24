@@ -49,14 +49,14 @@ workflows:
   version: 2
   main:
     jobs:
-    - build:
-        context: kgrid
-        filters:
-          branches:
-            ignore: gh-pages
-    - vuepress_deploy:
-        context: kgrid
-        requires: build
-        filters:
-          branches:
-            only: master
+      - build:
+          context: kgrid
+          filters:
+            branches:
+              ignore: gh-pages
+      - vuepress_deploy:
+          context: kgrid
+          requires: build
+          filters:
+            branches:
+              only: master

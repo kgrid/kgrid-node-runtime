@@ -46,6 +46,8 @@ if (!fs.pathExistsSync(packageFile)) {
 }
 
 app.locals.shelfPath = shelfPath
+app.locals.proxyUrl = kgridAdpaterProxyUrl
+app.locals.selfUrl = environmentSelfUrl
 
 global.cxt = {
   map: {},

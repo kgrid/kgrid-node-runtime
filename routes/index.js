@@ -9,15 +9,15 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'KGrid NodeJS Express Runtime' });
+  res.render('index', { title: 'KGrid Node Runtime' , tagline: 'Running Knowledge Objects written in JavaScript'});
 });
 
 /* GET INFO */
 router.get('/info', function(req, res, next) {
-  var protocol = getProtocol(req);
   var infoObj = {};
   infoObj.Status ="Up";
-  infoObj.Url =  protocol +"://"+req.get('host');
+  infoObj.Url =  req.app.locals.selfUrl;
+  infoObj.Registered_With_Activator = req.app.locals.proxyUrl;
   res.send(infoObj);
 });
 

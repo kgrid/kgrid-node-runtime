@@ -41,3 +41,13 @@ jobs:
           name: Deploy VuePress GitHub Pages
           command: |
                 chmod 775 .circleci/vuepress_deploy.sh && .circleci/vuepress_deploy.sh
+
+workflows:
+  version: 2
+  main:
+    jobs:
+    - build:
+        context: kgrid
+        filters:
+          branches:
+            only: master

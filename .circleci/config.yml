@@ -56,7 +56,8 @@ workflows:
               ignore: gh-pages
       - vuepress_deploy:
           context: kgrid
-          requires: build
+          requires:
+            - build
           filters:
             branches:
               only: master

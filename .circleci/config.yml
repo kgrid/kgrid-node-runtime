@@ -37,6 +37,9 @@ jobs:
       # run tests!
       - run: npm test
 
+  vuepress_deploy:
+    context: kgrid
+    steps:
       - run:
           name: Deploy VuePress GitHub Pages
           command: |
@@ -48,6 +51,12 @@ workflows:
     jobs:
     - build:
         context: kgrid
+        filters:
+          branches:
+            ignore: gh-pages
+    - vuepress_deploy:
+        context: kgrid
+        requires: build
         filters:
           branches:
             only: master

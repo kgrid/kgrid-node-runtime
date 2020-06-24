@@ -5,7 +5,7 @@
 version: 2
 jobs:
   build:
-    context: kgrid-lab
+    context: kgrid
     docker:
       # specify the version you desire here
       - image: circleci/node:10.17.0

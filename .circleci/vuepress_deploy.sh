@@ -17,4 +17,3 @@ git commit -m 'deploy'
 
 # if you are deploying to https://<USERNAME>.github.io/<REPO>
 git push -f https://${GITHUB_TOKEN}@github.com/kgrid/kgrid-node-runtime.git master:gh-pages
-© 2020 GitHub, Inc.

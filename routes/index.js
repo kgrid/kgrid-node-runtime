@@ -77,9 +77,7 @@ router.post('/deployments', function(req, res, next) {
     endpoint = req.body.endpoint || idPath;
     baseUrl = req.body.baseUrl || "";
     var result = {};
-    // result.baseUrl = protocol+"://"+req.get('host');
     result.endpoint_url = idPath;
-    // result.endpoint_url = protocol+"://"+req.get('host')+"/"+idPath;
     result.activated = (new Date()).toString();
     downloadasset.cleanup(targetpath, idPath);
     Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {

@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/kgrid/kgrid-node-runtime.git"
   },
+  "homepage": "https://kgrid.org/kgrid-node-runtime",
   "bin": {
     "kgrid-node": "./bin/www"
   },

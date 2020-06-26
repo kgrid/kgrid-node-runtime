@@ -1,13 +1,14 @@
-const fs = require('fs-extra')
+const fs = require('fs-extra');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const cors = require('cors')
-const { v4: uuidv4 } = require('uuid')
-const commandLineArgs = require('command-line-args')
+const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
+const commandLineArgs = require('command-line-args');
 var express = require('express');
 var createError = require('http-errors');
 const axios = require('axios').default;
+const pkg = require('./package.json');
 
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
@@ -20,6 +21,7 @@ morgan.token('id', function getId(req) {
 
 const kgridAdpaterProxyUrl = process.env.KGRID_ADAPTER_PROXY_URL || configJSON.kgrid_adapter_proxy_url;
 const environmentSelfUrl = process.env.ENVIRONMENT_SELF_URL || configJSON.environment_self_url;
+console.log(`KGrid Node Runtime ${pkg.version}\n\n`)
 console.log(`Setting Urls from Environment Variables:
 \nKGRID_ADAPTER_PROXY_URL: ${kgridAdpaterProxyUrl}
 \nENVIRONMENT_SELF_URL: ${environmentSelfUrl}

@@ -26,10 +26,9 @@ router.get('/context', function(req, res,next){
 });
 
 router.get('/endpoints', function(req, res, next) {
-  var protocol = getProtocol(req);
   var epArray=[];
   for(var key in global.cxt.map){
-    epArray.push(protocol+"://"+req.get('host')+'/'+key);
+    epArray.push(req.app.locals.selfUrl+'/'+key);
   }
   res.send(epArray);
 });
@@ -63,8 +62,6 @@ router.post('/deployments', function(req, res, next) {
   var version = "";
   var endpoint = "";
   var baseUrl = "";
-  // var artifacts =[];
-  var protocol = getProtocol(req);
   if(invalidInput(req.body)){
     res.status(400).send({"Error":"Bad Request"});
   }else {
@@ -153,17 +150,6 @@ router.post('/:ep', function(req, res, next) {
     res.status(404).send({"Error": 'Cannot found the endpoint: '+req.params.ep});
   }
 });
-
-
-function getProtocol(req) {
-  var protocol = "https";
-  if(process.env.NODE_ENV){
-    if(process.env.NODE_ENV.toLowerCase() == "dev") {
-      protocol = req.protocol;
-    }
-  }
-  return protocol;
-}
 
 function installDependencies(targetpath, dependencies){
   shelljs.cd(targetpath);

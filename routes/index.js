@@ -14,11 +14,7 @@ router.get('/', function(req, res, next) {
 
 /* GET INFO */
 router.get('/info', function(req, res, next) {
-  var infoObj = {};
-  infoObj.Status ="Up";
-  infoObj.Url =  req.app.locals.selfUrl;
-  infoObj.Registered_With_Activator = req.app.locals.proxyUrl;
-  res.send(infoObj);
+  res.send(req.app.locals.info);
 });
 
 router.get('/context', function(req, res,next){
@@ -28,7 +24,7 @@ router.get('/context', function(req, res,next){
 router.get('/endpoints', function(req, res, next) {
   var epArray=[];
   for(var key in global.cxt.map){
-    epArray.push(req.app.locals.selfUrl+'/'+key);
+    epArray.push(req.app.locals.info.appUrl+'/'+key);
   }
   res.send(epArray);
 });

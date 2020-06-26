@@ -48,8 +48,13 @@ if (!fs.pathExistsSync(packageFile)) {
 }
 
 app.locals.shelfPath = shelfPath
-app.locals.proxyUrl = kgridAdpaterProxyUrl
-app.locals.selfUrl = environmentSelfUrl
+
+app.locals.info = {};
+app.locals.info.app=pkg.name
+app.locals.info.version = pkg.version
+app.locals.info.Status ="Up";
+app.locals.info.appUrl = environmentSelfUrl;
+app.locals.info.Registered_With_Activator = "";
 
 global.cxt = {
   map: {},
@@ -128,6 +133,7 @@ axios.post(kgridAdpaterProxyUrl + "/proxy/environments",
   .then(function (response) {
     console.log("Registered remote environment in activator at " + kgridAdpaterProxyUrl + " with resp "
       + JSON.stringify(response.data));
+    app.locals.info.Registered_With_Activator = kgridAdpaterProxyUrl;
     axios.get(kgridAdpaterProxyUrl + "/activate")
       .catch(function (error) {
         console.log(error.message)

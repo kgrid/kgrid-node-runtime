@@ -12,6 +12,8 @@ jobs:
     docker:
       - image: circleci/node:10.17.0
     steps:
+      - checkout
+      - node/install-packages
       - run:
           name: Deploy VuePress GitHub Pages
           command: |
@@ -27,14 +29,7 @@ workflows:
               ignore: gh-pages
   vuepress-deploy:
     jobs:
-      - node/test:
-          context: kgrid
-          filters:
-            branches:
-              ignore: gh-pages
       - vuepress_deploy:
-          requires:
-            - node/test
           context: kgrid
           filters:
             branches:

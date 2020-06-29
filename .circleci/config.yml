@@ -41,7 +41,8 @@ jobs:
 workflows:
   build-and-test:
     jobs:
-      - node/test
+      - node/test:
+          context: kgrid
           filters:
             branches:
               ignore: gh-pages

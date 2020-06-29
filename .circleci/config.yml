@@ -10,33 +10,11 @@ orbs:
 jobs:
   vuepress_deploy:
     context: kgrid
-    docker:
-      # specify the version you desire here
-      - image: circleci/node:10.17.0
-
-    working_directory: ~/repo
-
     steps:
-      - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: npm install
-
-      - save_cache:
-          paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-
-      - run:
-          name: Deploy VuePress GitHub Pages
-          command: |
-                chmod 775 .circleci/vuepress_deploy.sh && .circleci/vuepress_deploy.sh
+      run:
+        name: Deploy VuePress GitHub Pages
+        command: |
+              chmod 775 .circleci/vuepress_deploy.sh && .circleci/vuepress_deploy.sh
 
 workflows:
   build-and-test:
@@ -46,3 +24,18 @@ workflows:
           filters:
             branches:
               ignore: gh-pages
+  vuepress-deploy:
+    jobs:
+      - node/test:
+          context: kgrid
+          filters:
+            branches:
+              only:
+                - main
+      - vuepress_deploy:
+          requires: node/test
+          context: kgrid
+          filters:
+            branches:
+              only:
+                - main

@@ -33,4 +33,5 @@ workflows:
           context: kgrid
           filters:
             branches:
-              ignore: gh-pages
+              only:
+                - main

@@ -31,13 +31,11 @@ workflows:
           context: kgrid
           filters:
             branches:
-              only:
-                - main
+              ignore: gh-pages
       - vuepress_deploy:
           requires:
             - node/test
           context: kgrid
           filters:
             branches:
-              only:
-                - main
+              ignore: gh-pages

@@ -9,12 +9,13 @@ orbs:
 
 jobs:
   vuepress_deploy:
-    context: kgrid
+    docker:
+      - image: circleci/node:10.17.0
     steps:
-      run:
-        name: Deploy VuePress GitHub Pages
-        command: |
-              chmod 775 .circleci/vuepress_deploy.sh && .circleci/vuepress_deploy.sh
+      - run:
+          name: Deploy VuePress GitHub Pages
+          command: |
+                chmod 775 .circleci/vuepress_deploy.sh && .circleci/vuepress_deploy.sh
 
 workflows:
   build-and-test:
@@ -33,7 +34,8 @@ workflows:
               only:
                 - main
       - vuepress_deploy:
-          requires: node/test
+          requires:
+            - node/test
           context: kgrid
           filters:
             branches:

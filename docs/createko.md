@@ -87,4 +87,4 @@ Make sure to add `package.json` to the list of `artifact` in `deployment.yaml` i
 
 
 ## What's next?
-Now the KO has all the code, with the updated service description and deployment description. Activate it in the KGrid Activator and see it work. Don't forget to start the KGrid Node Runtime too.
+Now the KO has all the code, with the updated service description and deployment description. Activate it in the KGrid Activator and see it work. Please refer to [Quick Start](https://kgrid.org/guides/quickstart/) or [DEveloper's Guide](https://kgrid.org/guides/developer/) for starting a local Grid. Don't forget to start the KGrid Node Runtime too.

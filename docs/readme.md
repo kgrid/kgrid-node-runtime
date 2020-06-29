@@ -30,3 +30,10 @@ Start the runtime by
 ```
 kgrid-node
 ```
+
+Once started, the runtime will register itself with the specified activator and ask the activator to activate all KOs intended for this runtime.
+
+
+## Runtime Information endpoint
+
+The information about this runtime can be retrieved at `{{url}}/info` 

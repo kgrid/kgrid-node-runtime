@@ -36,4 +36,4 @@ Once started, the runtime will register itself with the specified activator and 
 
 ## Runtime Information endpoint
 
-The information about this runtime can be retrieved at `{{url}}/info` 
+The information about this runtime can be retrieved at `{{url}}/info`

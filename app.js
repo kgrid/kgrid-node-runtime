@@ -12,8 +12,10 @@ const pkg = require('./package.json');
 
 const executor = require('./lib/executor')
 var usersRouter = require('./routes/users');
-var indexRouter = require('./routes/index');
+const index = require('./routes/index');
 var configJSON = require('./appproperties.json');
+const endpointhash = index.endpointhash;
+const indexRouter = index.router;
 
 morgan.token('id', function getId(req) {
   return req.id;
@@ -65,23 +67,13 @@ global.cxt = {
       return null
     }
   },
-  getExecutorByID(identifier, version, endpoint) {
-    for (var key in this.map) {
-      var e = this.map[key]
-      if ((e.identifier == identifier) && (e.version == version) && (e.endpoint == endpoint)) {
-        return e.executor
-      }
-    }
-    return null
+
+  getExecutorByID(uri) {
+      var e = this.map[endpointhash(uri)]
+    return e.executor
   },
-  getKeyByID(identifier, version, endpoint) {
-    for (var key in this.map) {
-      var e = this.map[key]
-      if ((e.identifier == identifier) && (e.version == version) && (e.endpoint == endpoint)) {
-        return key
-      }
-    }
-    return null
+  getKeyByID(uri) {
+    return endpointhash(uri);
   }
 }
 global.cxt.map = require(contextFile)

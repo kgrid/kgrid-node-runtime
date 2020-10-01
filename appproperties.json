@@ -1,5 +1,5 @@
 {
   "log_level":"debug",
-  "kgrid_adapter_proxy_url": "http://localhost:8080",
+  "kgrid_adapter_proxy_url": "http://localhost:8083",
   "environment_self_url": "http://localhost:3000"
 }

@@ -1,5 +1,4 @@
 var express = require('express');
-var Hashids = require('hashids/cjs');
 const downloadasset = require('../lib/downloadasset');
 var fs = require('fs-extra');
 const path = require('path');

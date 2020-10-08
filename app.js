@@ -126,7 +126,7 @@ axios.post(kgridAdpaterProxyUrl + "/proxy/environments",
     console.log("Registered remote environment in activator at " + kgridAdpaterProxyUrl + " with resp "
       + JSON.stringify(response.data));
     app.locals.info.Registered_With_Activator = kgridAdpaterProxyUrl;
-    axios.get(kgridAdpaterProxyUrl + "/activate")
+    axios.get(kgridAdpaterProxyUrl + "/activate/node")
       .catch(function (error) {
         console.log(error.message)
       });

@@ -62,7 +62,7 @@ router.post('/deployments', function (req, res, next) {
         idPath = endpointhash(id);
         baseUrl = req.body.baseUrl || "";
         var result = {};
-        result.endpoint_url = idPath;
+        result.endpointUrl = idPath;
         result.activated = (new Date()).toString();
         downloadasset.cleanup(targetpath, idPath);
         Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {

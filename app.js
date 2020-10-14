@@ -21,12 +21,12 @@ morgan.token('id', function getId(req) {
   return req.id;
 })
 
-const kgridAdpaterProxyUrl = process.env.KGRID_ADAPTER_PROXY_URL || configJSON.kgrid_adapter_proxy_url;
-const environmentSelfUrl = process.env.ENVIRONMENT_SELF_URL || configJSON.environment_self_url;
+const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
+const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
 console.log(`KGrid Node Runtime ${pkg.version}\n\n`)
 console.log(`Setting Urls from Environment Variables:
-\nKGRID_ADAPTER_PROXY_URL: ${kgridAdpaterProxyUrl}
-\nENVIRONMENT_SELF_URL: ${environmentSelfUrl}
+\nKGRID_PROXY_ADAPTER_URL: ${kgridProxyAdapterUrl}
+\nKGRID_NODE_ENV_URL: ${environmentSelfUrl}
 `);
 var app = express();
 
@@ -120,13 +120,13 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-axios.post(kgridAdpaterProxyUrl + "/proxy/environments",
+axios.post(kgridProxyAdapterUrl + "/proxy/environments",
   { "type": "node", "url": environmentSelfUrl })
   .then(function (response) {
-    console.log("Registered remote environment in activator at " + kgridAdpaterProxyUrl + " with resp "
+    console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
       + JSON.stringify(response.data));
-    app.locals.info.Registered_With_Activator = kgridAdpaterProxyUrl;
-    axios.get(kgridAdpaterProxyUrl + "/activate/node")
+    app.locals.info.Registered_With_Activator = kgridProxyAdapterUrl;
+    axios.get(kgridProxyAdapterUrl + "/activate/node")
       .catch(function (error) {
         console.log(error.message)
       });

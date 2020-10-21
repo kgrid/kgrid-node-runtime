@@ -60,7 +60,7 @@ app.locals.info.Registered_With_Activator = "";
 
 global.cxt = {
   map: {},
-  getExecutor(key) {
+  getExecutorByHash(key) {
     if (this.map[key]) {
       return this.map[key].executor
     } else {
@@ -72,8 +72,13 @@ global.cxt = {
       var e = this.map[endpointhash(uri)]
     return e.executor
   },
-  getKeyByID(uri) {
+
+  getHashByID(uri) {
     return endpointhash(uri);
+  },
+
+  getMetadataByID(uri) {
+    return this.map[endpointhash(uri)]
   }
 }
 global.cxt.map = require(contextFile)

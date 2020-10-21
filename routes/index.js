@@ -155,7 +155,7 @@ function installDependencies(targetpath, dependencies) {
 }
 
 function processEndpointwithGlobalCxtExecutor(key, input) {
-    var func = global.cxt.getExecutor(key);
+    var func = global.cxt.getExecutorByHash(key);
     var output = {};
     return new Promise((resolve, reject) => {
         func.execute(input).then(function (data) {

@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const commandLineArgs = require('command-line-args');
+const bodyParser = require('body-parser')
 var express = require('express');
 var createError = require('http-errors');
 const axios = require('axios').default;
@@ -100,9 +101,9 @@ app.use(assignId)
 if (process.env.DEBUG) {
   app.use(morgan('dev'))
 }
-// app.use(morgan(':id [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :response-time ms', { stream: accessLogStream }));
 
 app.use(express.json());
+app.use(bodyParser.text())
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));

@@ -55,7 +55,7 @@ router.post('/deployments', function (req, res, next) {
     var id = "";
     var baseUrl = "";
     if (invalidInput(req.body)) {
-        res.status(400).send({"Error": "Bad Request"});
+        res.status(400).send({"description": "Bad Request"});
     } else {
         // Download resources
         id = req.body.uri;
@@ -82,7 +82,8 @@ router.post('/deployments', function (req, res, next) {
             var entryfile = (baseUrl == "") ? targetpath + '/' + idPath + '/' + path.basename(req.body.entry)
                 : path.join(targetpath, idPath, req.body.entry);
             var exec = Object.create(executor);
-            if (exec.init(entryfile)) {
+            try {
+                exec.init(entryfile)
                 global.cxt.map[idPath] = {
                     src: entryfile,
                     executor: exec,
@@ -90,15 +91,16 @@ router.post('/deployments', function (req, res, next) {
                 };
                 fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
                 res.json(result);
-            } else {
+            } catch (error) {
+                console.log(error)
                 downloadasset.cleanup(targetpath, idPath);
-                res.status(404).send({"Error": 'Cannot initiate the executor.'});
+                res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
             }
         })
             .catch(function (errors) {
                 setTimeout(function () {
                     downloadasset.cleanup(targetpath, idPath);
-                    res.status(404).send({"Error": 'Cannot download ' + errors});
+                    res.status(404).send({"description": 'Cannot download ' + errors});
                 }, 500);
             });
     }
@@ -111,12 +113,12 @@ router.post('/dependencies', function (req, res, next) {
     if (req.body.dependencies) {
         var hasError = installDependencies(targetpath, req.body.dependencies);
         if (hasError) {
-            res.status(400).send({"Error": "Failed installing dependencies"});
+            res.status(400).send({"description": "Failed installing dependencies"});
         } else {
             res.send({"Info": "Dependencies installed."});
         }
     } else {
-        res.status(400).send({"Error": "No dependency specified."});
+        res.status(400).send({"description": "No dependency specified."});
     }
 });
 
@@ -130,10 +132,10 @@ router.post('/:ep', function (req, res, next) {
             output.request_id = req.id;
             res.send(output);
         }).catch(function (error) {
-            res.status(400).send({"Error": error});
+            res.status(400).send({"description": error});
         });
     } else {
-        res.status(404).send({"Error": 'Cannot found the endpoint: ' + req.params.ep});
+        res.status(404).send({"description": 'Cannot found the endpoint: ' + req.params.ep});
     }
 });
 

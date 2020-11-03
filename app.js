@@ -138,7 +138,7 @@ axios.post(kgridProxyAdapterUrl + "/proxy/environments",
       });
   })
   .catch(function (error) {
-    console.log(error.message);
+    console.log(error.response.data);
   });
 
 

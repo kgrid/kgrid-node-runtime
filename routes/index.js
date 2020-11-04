@@ -23,7 +23,7 @@ router.get('/context', function (req, res, next) {
 router.get('/endpoints', function (req, res, next) {
     var epArray = [];
     for (var key in global.cxt.map) {
-        epArray.push(req.app.locals.info.appUrl + '/' + key);
+        epArray.push({"uri": req.app.locals.info.appUrl + '/' + key, "id": global.cxt.map[key].id});
     }
     res.send(epArray);
 });
@@ -87,7 +87,8 @@ router.post('/deployments', function (req, res, next) {
                 global.cxt.map[idPath] = {
                     src: entryfile,
                     executor: exec,
-                    activated: result.activated
+                    activated: result.activated,
+                    id: id
                 };
                 fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
                 res.json(result);

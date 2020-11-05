@@ -23,33 +23,21 @@ router.get('/context', function (req, res, next) {
 router.get('/endpoints', function (req, res, next) {
     var epArray = [];
     for (var key in global.cxt.map) {
-        epArray.push({"uri": req.app.locals.info.appUrl + '/' + key, "id": global.cxt.map[key].id});
+        let endpoint = global.cxt.map[key];
+        epArray.push({"uri": req.app.locals.info.appUrl + '/' + key, "id": endpoint.id, "activated": endpoint.activated, "status": endpoint.status});
     }
     res.send(epArray);
 });
 
-router.post('/endpoints', function (req, res, next) {
-    var keyArray = [];
-    var output = {removed: [], nonexisting: []};
-    if (req.body.clearAll) {
-        keyArray = JSON.parse(JSON.stringify(Object.keys(global.cxt.map)));
-    } else {
-        keyArray = (req.body.keys != null) ? JSON.parse(JSON.stringify(req.body.keys)) : [];
-    }
-    keyArray.forEach(function (e) {
-        if (global.cxt.map[e]) {
-            delete global.cxt.map[e];
-            downloadasset.cleanup(req.app.locals.shelfPath, e);
-            fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-        } else {
-
-        }
-    });
-    res.send(keyArray);
+router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res, next) {
+    var uri = req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
+    let key = endpointhash(uri);
+    let endpoint = global.cxt.map[key];
+    res.send({"uri": req.app.locals.info.appUrl + '/' + key, "id": endpoint.id, "activated": endpoint.activated, "status": endpoint.status});
 });
 
 /* POST a deployment descriptor to activate */
-router.post('/deployments', function (req, res, next) {
+router.post('/endpoints', function (req, res, next) {
     console.log(req.body);
     var targetpath = req.app.locals.shelfPath;
     var id = "";
@@ -58,12 +46,15 @@ router.post('/deployments', function (req, res, next) {
         res.status(400).send({"description": "Bad Request"});
     } else {
         // Download resources
+        let status = "Activated";
         id = req.body.uri;
         idPath = endpointhash(id);
         baseUrl = req.body.baseUrl || "";
         var result = {};
-        result.endpointUrl = idPath;
+        result.id = id;
+        result.uri = idPath;
         result.activated = (new Date()).toString();
+        result.status = status
         downloadasset.cleanup(targetpath, idPath);
         Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {
             artifacts.forEach(function (arti) {
@@ -74,7 +65,7 @@ router.post('/deployments', function (req, res, next) {
                     var dep = pkgJson.dependencies;
                     if (dep) {
                         console.log(dep);
-                        var hasError = installDependencies(targetpath, dep);
+                        installDependencies(targetpath, dep);
                     }
                 }
             });
@@ -88,19 +79,22 @@ router.post('/deployments', function (req, res, next) {
                     src: entryfile,
                     executor: exec,
                     activated: result.activated,
-                    id: id
+                    id: id,
+                    status: status
                 };
                 fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
                 res.json(result);
             } catch (error) {
                 console.log(error)
                 downloadasset.cleanup(targetpath, idPath);
+                global.cxt.map[idPath].status = error;
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
             }
         })
             .catch(function (errors) {
                 setTimeout(function () {
                     downloadasset.cleanup(targetpath, idPath);
+                    global.cxt.map[idPath].status = errors;
                     res.status(404).send({"description": 'Cannot download ' + errors});
                 }, 500);
             });

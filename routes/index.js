@@ -1,68 +1,79 @@
-var express = require('express');
+let express = require('express');
 const downloadasset = require('../lib/downloadasset');
-var fs = require('fs-extra');
+let fs = require('fs-extra');
 const path = require('path');
 const shelljs = require('shelljs');
 const executor = require('../lib/executor');
-var router = express.Router();
+let router = express.Router();
 
 /* GET home page. */
-router.get('/', function (req, res, next) {
+router.get('/', function (req, res) {
     res.render('index', {title: 'KGrid Node Runtime', tagline: 'Running Knowledge Objects written in JavaScript'});
 });
 
 /* GET INFO */
-router.get('/info', function (req, res, next) {
+router.get('/info', function (req, res) {
     res.send(req.app.locals.info);
 });
 
-router.get('/context', function (req, res, next) {
+router.get('/context', function (req, res) {
     res.send(global.cxt);
 });
 
-router.get('/endpoints', function (req, res, next) {
-    var epArray = [];
-    for (var key in global.cxt.map) {
+router.get('/endpoints', function (req, res) {
+    let epArray = [];
+    for (let key in global.cxt.map) {
         let endpoint = global.cxt.map[key];
-        epArray.push({"uri": req.app.locals.info.appUrl + '/' + key, "id": endpoint.id, "activated": endpoint.activated, "status": endpoint.status});
+        epArray.push({
+            "uri": req.app.locals.info.url + '/' + key,
+            "id": endpoint.id,
+            "activated": endpoint.activated,
+            "status": endpoint.status
+        });
     }
     res.send(epArray);
 });
 
-router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res, next) {
-    var uri = req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
-    let key = endpointhash(uri);
+router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
+    let uri = req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
+    let key = endpointHash(uri);
     let endpoint = global.cxt.map[key];
-    res.send({"uri": req.app.locals.info.appUrl + '/' + key, "id": endpoint.id, "activated": endpoint.activated, "status": endpoint.status});
+    res.send({
+        "uri": req.app.locals.info.url + '/' + key,
+        "id": endpoint.id,
+        "activated": endpoint.activated,
+        "status": endpoint.status
+    });
 });
 
 /* POST a deployment descriptor to activate */
-router.post('/endpoints', function (req, res, next) {
+router.post('/endpoints', function (req, res) {
     console.log(req.body);
-    var targetpath = req.app.locals.shelfPath;
-    var id = "";
-    var baseUrl = "";
+    let targetpath = req.app.locals.shelfPath;
+    let id = "";
+    let baseUrl = "";
+    let idPath;
     if (invalidInput(req.body)) {
         res.status(400).send({"description": "Bad Request"});
     } else {
         // Download resources
         let status = "Activated";
         id = req.body.uri;
-        idPath = endpointhash(id);
+        idPath = endpointHash(id);
         baseUrl = req.body.baseUrl || "";
-        var result = {};
+        let result = {};
         result.id = id;
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
         downloadasset.cleanup(targetpath, idPath);
         Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {
-            artifacts.forEach(function (arti) {
-                var pkgfile = path.basename(arti);
-                if (pkgfile == "package.json") {
-                    console.log(pkgfile);
-                    var pkgJson = require(path.join(targetpath, idPath, pkgfile));
-                    var dep = pkgJson.dependencies;
+            artifacts.forEach(function (artifact) {
+                let packageFile = path.basename(artifact);
+                if (packageFile === "package.json") {
+                    console.log(packageFile);
+                    let pkgJson = require(path.join(targetpath, idPath, packageFile));
+                    let dep = pkgJson.dependencies;
                     if (dep) {
                         console.log(dep);
                         installDependencies(targetpath, dep);
@@ -70,13 +81,14 @@ router.post('/endpoints', function (req, res, next) {
                 }
             });
             // Construct the Executor
-            var entryfile = (baseUrl == "") ? targetpath + '/' + idPath + '/' + path.basename(req.body.entry)
+            let entryFile = (baseUrl === "") ? targetpath + '/' + idPath + '/' + path.basename(req.body.entry)
                 : path.join(targetpath, idPath, req.body.entry);
-            var exec = Object.create(executor);
+            let exec = Object.create(executor);
             try {
-                exec.init(entryfile)
+                global.cxt.map[idPath] = {status: 'Uninitialized'}
+                exec.init(entryFile)
                 global.cxt.map[idPath] = {
-                    src: entryfile,
+                    src: entryFile,
                     executor: exec,
                     activated: result.activated,
                     id: id,
@@ -87,7 +99,7 @@ router.post('/endpoints', function (req, res, next) {
             } catch (error) {
                 console.log(error)
                 downloadasset.cleanup(targetpath, idPath);
-                global.cxt.map[idPath].status = error;
+                global.cxt.map[idPath].status = error.message;
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
             }
         })
@@ -102,11 +114,11 @@ router.post('/endpoints', function (req, res, next) {
 });
 
 /* POST dependencies to install*/
-router.post('/dependencies', function (req, res, next) {
-    var targetpath = req.app.locals.shelfPath;
-    fs.ensureDirSync(targetpath);
+router.post('/dependencies', function (req, res) {
+    let targetPath = req.app.locals.shelfPath;
+    fs.ensureDirSync(targetPath);
     if (req.body.dependencies) {
-        var hasError = installDependencies(targetpath, req.body.dependencies);
+        let hasError = installDependencies(targetPath, req.body.dependencies);
         if (hasError) {
             res.status(400).send({"description": "Failed installing dependencies"});
         } else {
@@ -117,28 +129,28 @@ router.post('/dependencies', function (req, res, next) {
     }
 });
 
-router.get('/mem', function (req, res, next) {
+router.get('/mem', function (req, res) {
     res.send(process.memoryUsage());
 });
 
-router.post('/:ep', function (req, res, next) {
-    if (global.cxt.map[req.params.ep]) {
-        processEndpointwithGlobalCxtExecutor(req.params.ep, req.body).then(function (output) {
+router.post('/:endpointHash', function (req, res) {
+    if (global.cxt.map[req.params.endpointHash]) {
+        processEndpointwithGlobalCxtExecutor(req.params.endpointHash, req.body).then(function (output) {
             output.request_id = req.id;
             res.send(output);
         }).catch(function (error) {
             res.status(400).send({"description": error});
         });
     } else {
-        res.status(404).send({"description": 'Cannot found the endpoint: ' + req.params.ep});
+        res.status(404).send({"description": 'Cannot found the endpoint: ' + req.params.endpointHash});
     }
 });
 
 function installDependencies(targetpath, dependencies) {
     shelljs.cd(targetpath);
-    var hasError = false;
-    for (var key in dependencies) {
-        if (dependencies[key].startsWith('http') | dependencies[key].startsWith('https')) {
+    let hasError = false;
+    for (let key in dependencies) {
+        if (dependencies[key].startsWith('http') || dependencies[key].startsWith('https')) {
             if (shelljs.error(shelljs.exec('npm install --save ' + dependencies[key]))) {
                 hasError = true;
             }
@@ -152,8 +164,8 @@ function installDependencies(targetpath, dependencies) {
 }
 
 function processEndpointwithGlobalCxtExecutor(key, input) {
-    var func = global.cxt.getExecutorByHash(key);
-    var output = {};
+    let func = global.cxt.getExecutorByHash(key);
+    let output = {};
     return new Promise((resolve, reject) => {
         func.execute(input).then(function (data) {
             output.result = data;
@@ -165,22 +177,18 @@ function processEndpointwithGlobalCxtExecutor(key, input) {
     });
 }
 
-function endpointhash(uri){
-    var hash = 0, i, chr;
+function endpointHash(uri) {
+    let hash = 0, i, chr;
     for (i = 0; i < uri.length; i++) {
-        chr   = uri.charCodeAt(i);
-        hash  = ((hash << 5) - hash) + chr;
+        chr = uri.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
         hash |= 0; // Convert to 32bit integer
     }
-    return hash +"";
+    return hash + "";
 }
 
 function invalidInput(obj) {
-    var bool = false;
-    bool = bool | (obj.artifact == null) | (obj.artifact == "");
-    bool = bool | (obj.entry == null);
-    bool = bool | (obj.uri == null);
-    return bool;
+    return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-module.exports = {router, endpointhash};
+module.exports = {router, endpointhash: endpointHash};

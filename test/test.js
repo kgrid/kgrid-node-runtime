@@ -1,16 +1,11 @@
-//During the test the env variable is set to test
-process.env.NODE_ENV = 'test';
-
-//Require the dev-dependencies
 let chai = require('chai');
 let chaiHttp = require('chai-http');
 let server = require('../app');
 let should = chai.should();
-
-
 chai.use(chaiHttp);
 
 describe('POST /deployments', () => {
+
     it('it should return the endpoint ', (done) => {
         let input = {
             "uri": "/ri/bmi/v2.0/bmicalc",
@@ -38,7 +33,7 @@ describe('POST /deployments', () => {
             ]
         }
         chai.request(server)
-            .post('/deployments')
+            .post('/endpoints')
             .send(input)
             .end((err, res) => {
                 res.should.have.status(404);
@@ -61,50 +56,6 @@ describe('POST /deployments', () => {
     });
 });
 
-/*
-  * Test the /POST /:naan/:name/:/ep route
-  */
-
-// describe('POST /endpoint', () => {
-//     it('it should return the response', (done) => {
-//       let input = {
-//         "CYP2D6": {
-//           "diplotype": "*1/*1",
-//           "phenotype": "Ultrarapid metabolizer"
-//         }
-//       }
-//       chai.request(server)
-//           .post('/99999/cp4mc9723sd/dosingrecommendation')
-//           .send(input)
-//           .end((err, res) => {
-//                 res.should.have.status(200);
-//
-//             done();
-//           });
-//     });
-// });
-//
-// describe('POST /version/endpoint', () => {
-//     it('it should return the response', (done) => {
-//       let input = {
-//         "CYP2D6": {
-//           "diplotype": "*1/*1",
-//           "phenotype": "Ultrarapid metabolizer"
-//         }
-//       }
-//       chai.request(server)
-//           .post('/99999/cp4mc9723sd/v0.2.0/dosingrecommendation')
-//           .send(input)
-//           .end((err, res) => {
-//                 res.should.have.status(200);
-//
-//             done();
-//           });
-//     });
-// });
-/*
-  * Test the /GET route
-  */
 describe('GET /', () => {
     it('it should GET the home view', (done) => {
         chai.request(server)

@@ -66,52 +66,63 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        downloadAsset.cleanup(targetPath, idPath);
-        Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
-            artifacts.forEach(function (artifact) {
-                let packageFile = path.basename(artifact);
-                if (packageFile === "package.json") {
-                    console.log(packageFile);
-                    let pkgJson = require(path.join(targetPath, idPath, packageFile));
-                    let dep = pkgJson.dependencies;
-                    if (dep) {
-                        console.log(dep);
-                        installDependencies(targetPath, dep);
+        if (global.cxt.map[idPath]) {
+            //check if endpoint code has changed
+            res.json(result);
+        } else {
+            downloadAsset.cleanup(targetPath, idPath);
+            Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
+                artifacts.forEach(function (artifact) {
+                    let packageFile = path.basename(artifact);
+                    if (packageFile === "package.json") {
+                        console.log(packageFile);
+                        let pkgJson = require(path.join(targetPath, idPath, packageFile));
+                        let dep = pkgJson.dependencies;
+                        if (dep) {
+                            console.log(dep);
+                            installDependencies(targetPath, dep);
+                        }
                     }
-                }
-            });
-            // Construct the Executor
-            let entryFile = (baseUrl === "") ? targetPath + '/' + idPath + '/' + path.basename(req.body.entry)
-                : path.join(targetPath, idPath, req.body.entry);
-            let exec = Object.create(executor);
-            try {
-                global.cxt.map[idPath] = {status: 'Uninitialized'}
-                exec.init(entryFile)
-                global.cxt.map[idPath] = {
-                    src: entryFile,
-                    executor: exec,
-                    activated: result.activated,
+                });
+
+                let entryFile = path.join(targetPath, idPath, req.body.entry);
+                let endpoint = {
+                    entry: entryFile,
+                    executor: null,
+                    activated: new Date(),
                     id: id,
-                    status: status
-                };
-                fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-                res.json(result);
-            } catch (error) {
-                console.log(error)
-                downloadAsset.cleanup(targetPath, idPath);
-                global.cxt.map[idPath].id = id;
-                global.cxt.map[idPath].status = error.message;
-                global.cxt.map[idPath].activated = result.activated
-                res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
-            }
-        })
-            .catch(function (errors) {
-                setTimeout(function () {
+                    status: 'Not Activated'
+                }
+
+                try {
+                    let exec = Object.create(executor);
+                    exec.init(entryFile);
+                    endpoint.executor = exec;
+                    endpoint.status = 'Activated';
+                    res.json(result);
+                } catch (error) {
+                    console.log(error)
                     downloadAsset.cleanup(targetPath, idPath);
-                    global.cxt.map[idPath].status = errors;
-                    res.status(404).send({"description": 'Cannot download ' + errors});
-                }, 500);
-            });
+                    endpoint.status = error.message
+                    res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
+                } finally {
+                    global.cxt.map[idPath] = endpoint
+                    fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
+                }
+            })
+                .catch(function (errors) {
+                    setTimeout(function () {
+                        downloadAsset.cleanup(targetPath, idPath);
+                        global.cxt.map[idPath] = {
+                            executor: null,
+                            activated: new Date(),
+                            id: id,
+                            status: errors
+                        };
+                        res.status(404).send({"description": 'Cannot download ' + errors});
+                    }, 500);
+                });
+        }
     }
 });
 

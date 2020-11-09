@@ -22,36 +22,30 @@ morgan.token('id', function getId(req) {
     return req.id;
 })
 
+let app = express();
 const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
 const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
+let shelfPath =  path.join(process.cwd(), process.env.NODE_SHELF_PATH) || path.join(process.cwd(), 'shelf')
+let contextFilePath = path.join(shelfPath, "context.json")
+
 console.log(`KGrid Node Runtime ${pkg.version}\n\n`)
 console.log(`Setting Urls from Environment Variables:
 \nKGRID_PROXY_ADAPTER_URL: ${kgridProxyAdapterUrl}
 \nKGRID_NODE_ENV_URL: ${environmentSelfUrl}
 `);
-let app = express();
 
-const optionDefinitions = [
-    {name: 'shelf', alias: 's', type: String, defaultOption: false}
-]
-const options = commandLineArgs(optionDefinitions, {partial: true})
-
-let shelfPath = options.shelf || path.join(process.cwd(), 'shelf')
 fs.ensureDirSync(shelfPath)
-
-let contextFile = path.join(shelfPath, "context.json")
-if (!fs.pathExistsSync(contextFile)) {
-    fs.ensureFileSync(contextFile)
-    fs.writeJSONSync(contextFile, {}, {spaces: 4})
+if (!fs.pathExistsSync(contextFilePath)) {
+    fs.ensureFileSync(contextFilePath)
+    fs.writeJSONSync(contextFilePath, {}, {spaces: 4})
 }
-let packageFile = path.join(shelfPath, "package.json")
-if (!fs.pathExistsSync(packageFile)) {
-    fs.ensureFileSync(packageFile)
-    fs.writeJSONSync(packageFile, {"name": "expressactivatorshelf"}, {spaces: 4})
+let packageFilePath = path.join(shelfPath, "package.json")
+if (!fs.pathExistsSync(packageFilePath)) {
+    fs.ensureFileSync(packageFilePath)
+    fs.writeJSONSync(packageFilePath, {"name": "expressActivatorShelf"}, {spaces: 4})
 }
 
 app.locals.shelfPath = shelfPath
-
 app.locals.info = {};
 app.locals.info.app = pkg.name
 app.locals.info.version = pkg.version
@@ -59,50 +53,23 @@ app.locals.info.engine = "node";
 app.locals.info.status = "up";
 app.locals.info.url = environmentSelfUrl;
 app.locals.info.activatorUrl = "";
-
-global.cxt = {
-    map: {},
-    getExecutorByHash(key) {
-        if (this.map[key]) {
-            return this.map[key].executor
-        } else {
-            return null
-        }
-    },
-
-    getExecutorByID(uri) {
-        let e = this.map[endpointHash(uri)]
-        return e.executor
-    },
-}
-global.cxt.map = require(contextFile)
-if (Object.keys(global.cxt.map).length > 0) {
-    for (let key in global.cxt.map) {
-        if (global.cxt.map[key].status === 'Activated') {
-            const exec = Object.create(executor);
-            exec.init(global.cxt.map[key].src);
-            global.cxt.map[key].executor = exec
-        }
-    }
-}
 fs.createWriteStream(path.join(__dirname, 'access.log'), {flags: 'a'})
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.use(cors())
 app.use(assignId)
-
 if (process.env.DEBUG) {
     app.use(morgan('dev'))
 }
-
 app.use(express.json());
 app.use(bodyParser.text())
 app.use(express.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+setUpGlobalContext();
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -139,6 +106,34 @@ axios.post(kgridProxyAdapterUrl + "/proxy/environments",
 function assignId(req, res, next) {
     req.id = uuidv4()
     next()
+}
+function setUpGlobalContext() {
+    global.cxt = {
+        map: {},
+        getExecutorByHash(key) {
+            if (this.map[key]) {
+                return this.map[key].executor
+            } else {
+                return null
+            }
+        },
+
+        getExecutorByID(uri) {
+            let e = this.map[endpointHash(uri)]
+            return e.executor
+        },
+    }
+
+    global.cxt.map = require(contextFilePath)
+    if (Object.keys(global.cxt.map).length > 0) {
+        for (let key in global.cxt.map) {
+            if (global.cxt.map[key].status === 'Activated') {
+                const exec = Object.create(executor);
+                exec.init(global.cxt.map[key].entry);
+                global.cxt.map[key].executor = exec
+            }
+        }
+    }
 }
 
 module.exports = app;

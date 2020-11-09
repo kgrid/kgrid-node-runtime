@@ -1,5 +1,5 @@
 let express = require('express');
-const downloadasset = require('../lib/downloadasset');
+const downloadAsset = require('../lib/downloadasset');
 let fs = require('fs-extra');
 const path = require('path');
 const shelljs = require('shelljs');
@@ -49,7 +49,7 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
 /* POST a deployment descriptor to activate */
 router.post('/endpoints', function (req, res) {
     console.log(req.body);
-    let targetpath = req.app.locals.shelfPath;
+    let targetPath = req.app.locals.shelfPath;
     let id = "";
     let baseUrl = "";
     let idPath;
@@ -66,23 +66,23 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        downloadasset.cleanup(targetpath, idPath);
-        Promise.all(downloadasset.download_files(baseUrl, req.body.artifact, targetpath, idPath)).then(function (artifacts) {
+        downloadAsset.cleanup(targetPath, idPath);
+        Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
             artifacts.forEach(function (artifact) {
                 let packageFile = path.basename(artifact);
                 if (packageFile === "package.json") {
                     console.log(packageFile);
-                    let pkgJson = require(path.join(targetpath, idPath, packageFile));
+                    let pkgJson = require(path.join(targetPath, idPath, packageFile));
                     let dep = pkgJson.dependencies;
                     if (dep) {
                         console.log(dep);
-                        installDependencies(targetpath, dep);
+                        installDependencies(targetPath, dep);
                     }
                 }
             });
             // Construct the Executor
-            let entryFile = (baseUrl === "") ? targetpath + '/' + idPath + '/' + path.basename(req.body.entry)
-                : path.join(targetpath, idPath, req.body.entry);
+            let entryFile = (baseUrl === "") ? targetPath + '/' + idPath + '/' + path.basename(req.body.entry)
+                : path.join(targetPath, idPath, req.body.entry);
             let exec = Object.create(executor);
             try {
                 global.cxt.map[idPath] = {status: 'Uninitialized'}
@@ -98,14 +98,15 @@ router.post('/endpoints', function (req, res) {
                 res.json(result);
             } catch (error) {
                 console.log(error)
-                downloadasset.cleanup(targetpath, idPath);
+                downloadAsset.cleanup(targetPath, idPath);
+                global.cxt.map[idPath].id = id;
                 global.cxt.map[idPath].status = error.message;
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
             }
         })
             .catch(function (errors) {
                 setTimeout(function () {
-                    downloadasset.cleanup(targetpath, idPath);
+                    downloadAsset.cleanup(targetPath, idPath);
                     global.cxt.map[idPath].status = errors;
                     res.status(404).send({"description": 'Cannot download ' + errors});
                 }, 500);
@@ -146,8 +147,8 @@ router.post('/:endpointHash', function (req, res) {
     }
 });
 
-function installDependencies(targetpath, dependencies) {
-    shelljs.cd(targetpath);
+function installDependencies(targetPath, dependencies) {
+    shelljs.cd(targetPath);
     let hasError = false;
     for (let key in dependencies) {
         if (dependencies[key].startsWith('http') || dependencies[key].startsWith('https')) {
@@ -191,4 +192,4 @@ function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-module.exports = {router, endpointhash: endpointHash};
+module.exports = {router, endpointHash: endpointHash};

@@ -15,7 +15,7 @@ const executor = require('./lib/executor')
 let usersRouter = require('./routes/users');
 const index = require('./routes/index');
 let configJSON = require('./appproperties.json');
-const endpointhash = index.endpointhash;
+const endpointHash = index.endpointHash;
 const indexRouter = index.router;
 
 morgan.token('id', function getId(req) {
@@ -71,16 +71,18 @@ global.cxt = {
     },
 
     getExecutorByID(uri) {
-        let e = this.map[endpointhash(uri)]
+        let e = this.map[endpointHash(uri)]
         return e.executor
     },
 }
 global.cxt.map = require(contextFile)
 if (Object.keys(global.cxt.map).length > 0) {
     for (let key in global.cxt.map) {
-        const exec = Object.create(executor);
-        exec.init(global.cxt.map[key].src);
-        global.cxt.map[key].executor = exec
+        if (global.cxt.map[key].status === 'Activated') {
+            const exec = Object.create(executor);
+            exec.init(global.cxt.map[key].src);
+            global.cxt.map[key].executor = exec
+        }
     }
 }
 fs.createWriteStream(path.join(__dirname, 'access.log'), {flags: 'a'})

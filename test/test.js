@@ -22,7 +22,7 @@ describe('POST /deployments', () => {
             "function": "bmicalc"
         }
         chai.request(server)
-            .post('/deployments')
+            .post('/endpoints')
             .send(input)
             .end((err, res) => {
                 res.should.have.status(200);
@@ -52,7 +52,7 @@ describe('POST /deployments', () => {
             "entry": "recommendation.js"
         }
         chai.request(server)
-            .post('/deployments')
+            .post('/endpoints')
             .send(input)
             .end((err, res) => {
                 res.should.have.status(400);

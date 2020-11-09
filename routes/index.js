@@ -101,6 +101,7 @@ router.post('/endpoints', function (req, res) {
                 downloadAsset.cleanup(targetPath, idPath);
                 global.cxt.map[idPath].id = id;
                 global.cxt.map[idPath].status = error.message;
+                global.cxt.map[idPath].activated = result.activated
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
             }
         })

@@ -6,7 +6,7 @@ chai.use(chaiHttp);
 
 describe('POST /deployments', () => {
 
-    it('it should return the endpoint ', (done) => {
+    it('should return the endpoint ', (done) => {
         let input = {
             "uri": "/ri/bmi/v2.0/bmicalc",
             "baseUrl": "https://kgrid-lab.github.io/testobj/ri-bmicalc-v2.0",
@@ -24,7 +24,8 @@ describe('POST /deployments', () => {
                 done();
             });
     });
-    it('not found at resource URL', (done) => {
+
+    it('should respond not found if nothing at resource URL', (done) => {
         let input = {
             "uri": "/99999/cp4mc9723s/v0.2.0/dosingrecommendation",
             "entry": "recommendation.js",
@@ -40,7 +41,8 @@ describe('POST /deployments', () => {
                 done();
             });
     });
-    it('missing Resource URL', (done) => {
+
+    it('should respond 400 if missing Resource URL', (done) => {
         let input = {
             "identifier": "ark:/hello/world",
             "endpoint": "welcome",
@@ -57,7 +59,7 @@ describe('POST /deployments', () => {
 });
 
 describe('GET /', () => {
-    it('it should GET the home view', (done) => {
+    it('should GET the home view', (done) => {
         chai.request(server)
             .get('/')
             .end((err, res) => {

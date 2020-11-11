@@ -7,13 +7,12 @@ const {v4: uuidv4} = require('uuid');
 const bodyParser = require('body-parser');
 let express = require('express');
 let createError = require('http-errors');
-const axios = require('axios').default;
 const pkg = require('./package.json');
 
 const executor = require('./lib/executor');
 let usersRouter = require('./routes/users');
 const index = require('./routes/index');
-let configJSON = require('./appproperties.json');
+let configJSON = require('./appProperties.json');
 const endpointHash = index.endpointHash;
 const indexRouter = index.router;
 
@@ -25,8 +24,8 @@ let app = express();
 const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
 const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
 let shelfPath =
-    process.env.NODE_SHELF_PATH
-        ? path.join(process.cwd(), process.env.NODE_SHELF_PATH)
+    process.env.KGRID_NODE_SHELF_PATH
+        ? path.join(process.cwd(), process.env.KGRID_NODE_SHELF_PATH)
         : path.join(process.cwd(), 'shelf');
 let contextFilePath = path.join(shelfPath, "context.json");
 let packageFilePath = path.join(shelfPath, "package.json");
@@ -41,7 +40,7 @@ checkPaths();
 setUpExpressApp();
 setUpGlobalContext();
 createErrorHandlers();
-registerWithActivator();
+index.registerWithActivator(app);
 
 function checkPaths() {
     fs.ensureDirSync(shelfPath)
@@ -108,27 +107,6 @@ function setUpGlobalContext() {
             }
         }
     }
-}
-
-function registerWithActivator() {
-    axios.post(kgridProxyAdapterUrl + "/proxy/environments",
-        {"engine": "node", "url": environmentSelfUrl})
-        .then(function (response) {
-            console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
-                + JSON.stringify(response.data));
-            app.locals.info.activatorUrl = kgridProxyAdapterUrl;
-            axios.get(kgridProxyAdapterUrl + "/activate/node")
-                .catch(function (error) {
-                    console.log(error.message)
-                });
-        })
-        .catch(function (error) {
-            if (error.response) {
-                console.log(error.response.data);
-            } else {
-                console.log(error.message);
-            }
-        });
 }
 
 function createErrorHandlers() {

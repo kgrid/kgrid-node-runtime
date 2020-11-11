@@ -5,6 +5,11 @@ const path = require('path');
 const shelljs = require('shelljs');
 const executor = require('../lib/executor');
 let router = express.Router();
+const axios = require('axios').default;
+let configJSON = require('./../appProperties.json');
+
+const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
+const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
 
 /* GET home page. */
 router.get('/', function (req, res) {
@@ -20,16 +25,31 @@ router.get('/context', function (req, res) {
     res.send(global.cxt);
 });
 
+router.get('/register',function (req,res){
+    registerWithActivator(req.app);
+    res.send({"Registered with": kgridProxyAdapterUrl});
+});
+
 router.get('/endpoints', function (req, res) {
     let epArray = [];
     for (let key in global.cxt.map) {
         let endpoint = global.cxt.map[key];
-        epArray.push({
-            "uri": req.app.locals.info.url + '/' + key,
+        let baseUrl = req.app.locals.info.url;
+        let url;
+        if(baseUrl.endsWith('/')){
+            url = baseUrl + key;
+        } else {
+            url = baseUrl + '/' + key;
+        }
+        epObj = {
             "id": endpoint.id,
             "activated": endpoint.activated,
             "status": endpoint.status
-        });
+        }
+        if(endpoint.status === "Activated"){
+            epObj.url = url;
+        }
+        epArray.push(epObj);
     }
     res.send(epArray);
 });
@@ -38,12 +58,22 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
     let uri = req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
     let key = endpointHash(uri);
     let endpoint = global.cxt.map[key];
-    res.send({
-        "uri": req.app.locals.info.url + '/' + key,
+    let baseUrl = req.app.locals.info.url;
+    let url;
+    if(baseUrl.endsWith('/')){
+        url = baseUrl + key;
+    } else {
+        url = baseUrl + '/' + key;
+    }
+    epObj = {
         "id": endpoint.id,
         "activated": endpoint.activated,
         "status": endpoint.status
-    });
+    }
+    if(endpoint.status === "Activated"){
+        epObj.url = url;
+    }
+    res.send(epObj);
 });
 
 /* POST a deployment descriptor to activate */
@@ -66,7 +96,7 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        if (global.cxt.map[idPath]) {
+        if (global.cxt.map[idPath] && process.env.KGRID_CACHE_NODE_OBJECTS === "true") {
             //check if endpoint code has changed
             res.json(result);
         } else {
@@ -204,4 +234,25 @@ function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-module.exports = {router, endpointHash: endpointHash};
+function registerWithActivator(app) {
+    axios.post(kgridProxyAdapterUrl + "/proxy/environments",
+        {"engine": "node", "url": environmentSelfUrl})
+        .then(function (response) {
+            console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
+                + JSON.stringify(response.data));
+            app.locals.info.activatorUrl = kgridProxyAdapterUrl;
+            axios.get(kgridProxyAdapterUrl + "/activate/node")
+                .catch(function (error) {
+                    console.log(error.message)
+                });
+        })
+        .catch(function (error) {
+            if (error.response) {
+                console.log(error.response.data);
+            } else {
+                console.log(error.message);
+            }
+        });
+}
+
+module.exports = {router, endpointHash: endpointHash, registerWithActivator};

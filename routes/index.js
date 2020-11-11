@@ -96,8 +96,8 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        if (global.cxt.map[idPath] && process.env.KGRID_CACHE_NODE_OBJECTS === "true") {
-            //check if endpoint code has changed
+        if (global.cxt.map[idPath] && process.env.KGRID_NODE_CACHE_OBJECTS === "true" && global.cxt.map[idPath].checksum
+            && global.cxt.map[idPath].checksum === req.body.checksum) {
             res.json(result);
         } else {
             downloadAsset.cleanup(targetPath, idPath);
@@ -121,7 +121,8 @@ router.post('/endpoints', function (req, res) {
                     executor: null,
                     activated: new Date(),
                     id: id,
-                    status: 'Not Activated'
+                    status: 'Not Activated',
+                    checksum: req.body.checksum
                 }
 
                 try {

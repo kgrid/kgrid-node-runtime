@@ -5,6 +5,11 @@ const path = require('path');
 const shelljs = require('shelljs');
 const executor = require('../lib/executor');
 let router = express.Router();
+const axios = require('axios').default;
+let configJSON = require('./../appProperties.json');
+
+const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
+const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
 
 /* GET home page. */
 router.get('/', function (req, res) {
@@ -20,16 +25,31 @@ router.get('/context', function (req, res) {
     res.send(global.cxt);
 });
 
+router.get('/register',function (req,res){
+    registerWithActivator(req.app);
+    res.send({"Registered with": kgridProxyAdapterUrl});
+});
+
 router.get('/endpoints', function (req, res) {
     let epArray = [];
     for (let key in global.cxt.map) {
         let endpoint = global.cxt.map[key];
-        epArray.push({
-            "uri": req.app.locals.info.url + '/' + key,
+        let baseUrl = req.app.locals.info.url;
+        let url;
+        if(baseUrl.endsWith('/')){
+            url = baseUrl + key;
+        } else {
+            url = baseUrl + '/' + key;
+        }
+        epObj = {
             "id": endpoint.id,
             "activated": endpoint.activated,
             "status": endpoint.status
-        });
+        }
+        if(endpoint.status === "Activated"){
+            epObj.url = url;
+        }
+        epArray.push(epObj);
     }
     res.send(epArray);
 });
@@ -38,12 +58,22 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
     let uri = req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
     let key = endpointHash(uri);
     let endpoint = global.cxt.map[key];
-    res.send({
-        "uri": req.app.locals.info.url + '/' + key,
+    let baseUrl = req.app.locals.info.url;
+    let url;
+    if(baseUrl.endsWith('/')){
+        url = baseUrl + key;
+    } else {
+        url = baseUrl + '/' + key;
+    }
+    epObj = {
         "id": endpoint.id,
         "activated": endpoint.activated,
         "status": endpoint.status
-    });
+    }
+    if(endpoint.status === "Activated"){
+        epObj.url = url;
+    }
+    res.send(epObj);
 });
 
 /* POST a deployment descriptor to activate */
@@ -66,52 +96,67 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        downloadAsset.cleanup(targetPath, idPath);
-        Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
-            artifacts.forEach(function (artifact) {
-                let packageFile = path.basename(artifact);
-                if (packageFile === "package.json") {
-                    console.log(packageFile);
-                    let pkgJson = require(path.join(targetPath, idPath, packageFile));
-                    let dep = pkgJson.dependencies;
-                    if (dep) {
-                        console.log(dep);
-                        installDependencies(targetPath, dep);
+        if(process.env.KGRID_NODE_CACHE_STRATEGY === "always" && global.cxt.map[idPath]) {
+            res.json(result);
+        }
+        else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath] && global.cxt.map[idPath].checksum
+            && global.cxt.map[idPath].checksum === req.body.checksum) {
+            res.json(result);
+        } else {
+            downloadAsset.cleanup(targetPath, idPath);
+            Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
+                artifacts.forEach(function (artifact) {
+                    let packageFile = path.basename(artifact);
+                    if (packageFile === "package.json") {
+                        console.log(packageFile);
+                        let pkgJson = require(path.join(targetPath, idPath, packageFile));
+                        let dep = pkgJson.dependencies;
+                        if (dep) {
+                            console.log(dep);
+                            installDependencies(targetPath, dep);
+                        }
                     }
-                }
-            });
-            // Construct the Executor
-            let entryFile = (baseUrl === "") ? targetPath + '/' + idPath + '/' + path.basename(req.body.entry)
-                : path.join(targetPath, idPath, req.body.entry);
-            let exec = Object.create(executor);
-            try {
-                global.cxt.map[idPath] = {status: 'Uninitialized'}
-                exec.init(entryFile)
-                global.cxt.map[idPath] = {
-                    src: entryFile,
-                    executor: exec,
-                    activated: result.activated,
+                });
+
+                let entryFile = path.join(targetPath, idPath, req.body.entry);
+                let endpoint = {
+                    entry: entryFile,
+                    executor: null,
+                    activated: new Date(),
                     id: id,
-                    status: status
-                };
-                fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-                res.json(result);
-            } catch (error) {
-                console.log(error)
-                downloadAsset.cleanup(targetPath, idPath);
-                global.cxt.map[idPath].id = id;
-                global.cxt.map[idPath].status = error.message;
-                global.cxt.map[idPath].activated = result.activated
-                res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
-            }
-        })
-            .catch(function (errors) {
-                setTimeout(function () {
+                    status: 'Not Activated',
+                    checksum: req.body.checksum
+                }
+
+                try {
+                    let exec = Object.create(executor);
+                    exec.init(entryFile);
+                    endpoint.executor = exec;
+                    endpoint.status = 'Activated';
+                    res.json(result);
+                } catch (error) {
+                    console.log(error)
                     downloadAsset.cleanup(targetPath, idPath);
-                    global.cxt.map[idPath].status = errors;
-                    res.status(404).send({"description": 'Cannot download ' + errors});
-                }, 500);
-            });
+                    endpoint.status = error.message
+                    res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
+                } finally {
+                    global.cxt.map[idPath] = endpoint
+                    fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
+                }
+            })
+                .catch(function (errors) {
+                    setTimeout(function () {
+                        downloadAsset.cleanup(targetPath, idPath);
+                        global.cxt.map[idPath] = {
+                            executor: null,
+                            activated: new Date(),
+                            id: id,
+                            status: errors
+                        };
+                        res.status(404).send({"description": 'Cannot download ' + errors});
+                    }, 500);
+                });
+        }
     }
 });
 
@@ -193,4 +238,25 @@ function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-module.exports = {router, endpointHash: endpointHash};
+function registerWithActivator(app) {
+    axios.post(kgridProxyAdapterUrl + "/proxy/environments",
+        {"engine": "node", "url": environmentSelfUrl})
+        .then(function (response) {
+            console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
+                + JSON.stringify(response.data));
+            app.locals.info.activatorUrl = kgridProxyAdapterUrl;
+            axios.get(kgridProxyAdapterUrl + "/activate/node")
+                .catch(function (error) {
+                    console.log(error.message)
+                });
+        })
+        .catch(function (error) {
+            if (error.response) {
+                console.log(error.response.data);
+            } else {
+                console.log(error.message);
+            }
+        });
+}
+
+module.exports = {router, endpointHash: endpointHash, registerWithActivator};

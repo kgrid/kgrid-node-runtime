@@ -96,7 +96,10 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        if (global.cxt.map[idPath] && process.env.KGRID_NODE_CACHE_OBJECTS === "true" && global.cxt.map[idPath].checksum
+        if(process.env.KGRID_NODE_CACHE_STRATEGY === "always" && global.cxt.map[idPath]) {
+            res.json(result);
+        }
+        else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath] && global.cxt.map[idPath].checksum
             && global.cxt.map[idPath].checksum === req.body.checksum) {
             res.json(result);
         } else {

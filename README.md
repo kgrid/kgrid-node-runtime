@@ -34,3 +34,9 @@ Start the runtime by
 ```
 kgrid-node
 ```
+
+## Important Notes
+- Editing the cache directly from the runtime's shelf will
+not propagate changes to the endpoints in the runtime. New
+KOs must come from the activator.
+

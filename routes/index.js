@@ -25,7 +25,7 @@ router.get('/context', function (req, res) {
     res.send(global.cxt);
 });
 
-router.get('/register',function (req,res){
+router.get('/register', function (req, res) {
     registerWithActivator(req.app);
     res.send({"Registered with": kgridProxyAdapterUrl});
 });
@@ -36,7 +36,7 @@ router.get('/endpoints', function (req, res) {
         let endpoint = global.cxt.map[key];
         let baseUrl = req.app.locals.info.url;
         let url;
-        if(baseUrl.endsWith('/')){
+        if (baseUrl.endsWith('/')) {
             url = baseUrl + key;
         } else {
             url = baseUrl + '/' + key;
@@ -46,7 +46,7 @@ router.get('/endpoints', function (req, res) {
             "activated": endpoint.activated,
             "status": endpoint.status
         }
-        if(endpoint.status === "Activated"){
+        if (endpoint.status === "Activated") {
             epObj.url = url;
         }
         epArray.push(epObj);
@@ -60,7 +60,7 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
     let endpoint = global.cxt.map[key];
     let baseUrl = req.app.locals.info.url;
     let url;
-    if(baseUrl.endsWith('/')){
+    if (baseUrl.endsWith('/')) {
         url = baseUrl + key;
     } else {
         url = baseUrl + '/' + key;
@@ -70,7 +70,7 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
         "activated": endpoint.activated,
         "status": endpoint.status
     }
-    if(endpoint.status === "Activated"){
+    if (endpoint.status === "Activated") {
         epObj.url = url;
     }
     res.send(epObj);
@@ -96,66 +96,13 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        if(process.env.KGRID_NODE_CACHE_STRATEGY === "always" && global.cxt.map[idPath]) {
+        if (process.env.KGRID_NODE_CACHE_STRATEGY === "always" && global.cxt.map[idPath]) {
             res.json(result);
-        }
-        else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath] && global.cxt.map[idPath].checksum
+        } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath] && global.cxt.map[idPath].checksum
             && global.cxt.map[idPath].checksum === req.body.checksum) {
             res.json(result);
         } else {
-            downloadAsset.cleanup(targetPath, idPath);
-            Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
-                artifacts.forEach(function (artifact) {
-                    let packageFile = path.basename(artifact);
-                    if (packageFile === "package.json") {
-                        console.log(packageFile);
-                        let pkgJson = require(path.join(targetPath, idPath, packageFile));
-                        let dep = pkgJson.dependencies;
-                        if (dep) {
-                            console.log(dep);
-                            installDependencies(targetPath, dep);
-                        }
-                    }
-                });
-
-                let entryFile = path.join(targetPath, idPath, req.body.entry);
-                let endpoint = {
-                    entry: entryFile,
-                    executor: null,
-                    activated: new Date(),
-                    id: id,
-                    status: 'Not Activated',
-                    checksum: req.body.checksum
-                }
-
-                try {
-                    let exec = Object.create(executor);
-                    exec.init(entryFile);
-                    endpoint.executor = exec;
-                    endpoint.status = 'Activated';
-                    res.json(result);
-                } catch (error) {
-                    console.log(error)
-                    downloadAsset.cleanup(targetPath, idPath);
-                    endpoint.status = error.message
-                    res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
-                } finally {
-                    global.cxt.map[idPath] = endpoint
-                    fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-                }
-            })
-                .catch(function (errors) {
-                    setTimeout(function () {
-                        downloadAsset.cleanup(targetPath, idPath);
-                        global.cxt.map[idPath] = {
-                            executor: null,
-                            activated: new Date(),
-                            id: id,
-                            status: errors
-                        };
-                        res.status(404).send({"description": 'Cannot download ' + errors});
-                    }, 500);
-                });
+            activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
         }
     }
 });
@@ -182,7 +129,7 @@ router.get('/mem', function (req, res) {
 
 router.post('/:endpointHash', function (req, res) {
     if (global.cxt.map[req.params.endpointHash]) {
-        processEndpointwithGlobalCxtExecutor(req.params.endpointHash, req.body).then(function (output) {
+        processEndpointWithGlobalCxtExecutor(req.params.endpointHash, req.body).then(function (output) {
             output.request_id = req.id;
             res.send(output);
         }).catch(function (error) {
@@ -210,7 +157,7 @@ function installDependencies(targetPath, dependencies) {
     return hasError;
 }
 
-function processEndpointwithGlobalCxtExecutor(key, input) {
+function processEndpointWithGlobalCxtExecutor(key, input) {
     let func = global.cxt.getExecutorByHash(key);
     let output = {};
     return new Promise((resolve, reject) => {
@@ -256,6 +203,63 @@ function registerWithActivator(app) {
             } else {
                 console.log(error.message);
             }
+        });
+}
+
+
+function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
+    downloadAsset.cleanup(targetPath, idPath);
+    Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
+        artifacts.forEach(function (artifact) {
+            let packageFile = path.basename(artifact);
+            if (packageFile === "package.json") {
+                console.log(packageFile);
+                let pkgJson = require(path.join(targetPath, idPath, packageFile));
+                let dep = pkgJson.dependencies;
+                if (dep) {
+                    console.log(dep);
+                    installDependencies(targetPath, dep);
+                }
+            }
+        });
+
+        let entryFile = path.join(targetPath, idPath, req.body.entry);
+        let endpoint = {
+            entry: entryFile,
+            executor: null,
+            activated: new Date(),
+            id: id,
+            status: 'Not Activated',
+            checksum: req.body.checksum
+        }
+
+        try {
+            let exec = Object.create(executor);
+            exec.init(entryFile);
+            endpoint.executor = exec;
+            endpoint.status = 'Activated';
+            res.json(result);
+        } catch (error) {
+            console.log(error)
+            downloadAsset.cleanup(targetPath, idPath);
+            endpoint.status = error.message
+            res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
+        } finally {
+            global.cxt.map[idPath] = endpoint
+            fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
+        }
+    })
+        .catch(function (errors) {
+            setTimeout(function () {
+                downloadAsset.cleanup(targetPath, idPath);
+                global.cxt.map[idPath] = {
+                    executor: null,
+                    activated: new Date(),
+                    id: id,
+                    status: errors
+                };
+                res.status(404).send({"description": 'Cannot download ' + errors});
+            }, 500);
         });
 }
 

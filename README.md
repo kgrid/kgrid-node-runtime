@@ -20,7 +20,7 @@ npm install -g @kgrid/noderuntime
 - Set the environmental variable of `KGRID_NODE_ENV_PORT` to the port this runtime will run at.
 (Default:3000)
 
-- The `KGRID_PYTHON_CACHE_STRATEGY` can take three values: `never`, `always`, or `use_checksum`
+- The `KGRID_NODE_CACHE_STRATEGY` can take three values: `never`, `always`, or `use_checksum`
 
     - `never` or if no value is set means that existing objects will be overwritten whenever objects are re-downloaded from the activator.
     - `always` means that existing objects stored in the python runtime will never be re-downloaded from the activator and the local pyshelf and context.json files must be deleted and the runtime restarted for the objects to be replaced.

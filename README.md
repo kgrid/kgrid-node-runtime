@@ -41,5 +41,5 @@ not propagate changes to the endpoints in the runtime. New
 KOs must come from the activator.
 - The runtime will attempt to load any Knowledge Objects that 
 were previously loaded onto its shelf before registering with 
-the activator and acquiring its objects.
-
+the activator and acquiring its objects. The shelf directory can 
+be deleted if there is a need to get all objects fresh from the activator.

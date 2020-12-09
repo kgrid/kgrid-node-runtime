@@ -7,8 +7,9 @@ const executor = require('../lib/executor');
 let router = express.Router();
 const axios = require('axios').default;
 let configJSON = require('./../appProperties.json');
+const pjson = require('./../package.json');
 
-const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
+let kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
 const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
 
 /* GET home page. */
@@ -186,8 +187,11 @@ function invalidInput(obj) {
 }
 
 function registerWithActivator(app) {
+    if(kgridProxyAdapterUrl.endsWith("/")) {
+        kgridProxyAdapterUrl = kgridProxyAdapterUrl.substr(0, kgridProxyAdapterUrl.length - 1);
+    }
     axios.post(kgridProxyAdapterUrl + "/proxy/environments",
-        {"engine": "node", "url": environmentSelfUrl})
+        {"engine": "node", "version": pjson.version, "url": environmentSelfUrl})
         .then(function (response) {
             console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
                 + JSON.stringify(response.data));

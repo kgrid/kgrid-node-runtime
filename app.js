@@ -92,8 +92,11 @@ function setUpGlobalContext() {
         },
 
         getExecutorByID(uri) {
-            let e = this.map[endpointHash(uri)];
-            return e.executor;
+           if (this.map[endpointHash(uri)]) {
+                return this.map[endpointHash(uri)].executor;
+            } else {
+                return null;
+            }
         },
     }
 

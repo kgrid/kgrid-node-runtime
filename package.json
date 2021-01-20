@@ -29,6 +29,7 @@
     "express": "~4.16.1",
     "fs-extra": "^8.1.0",
     "hashids": "^2.2.2",
+    "heartbeats": "^5.0.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "pug": "^2.0.4",

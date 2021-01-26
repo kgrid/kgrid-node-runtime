@@ -16,7 +16,7 @@ let configJSON = require('./appProperties.json');
 const endpointHash = index.endpointHash;
 const indexRouter = index.router;
 
-var heartbeats = require('heartbeats');
+// var heartbeats = require('heartbeats');
 
 morgan.token('id', function getId(req) {
     return req.id;
@@ -43,11 +43,13 @@ setUpExpressApp();
 setUpGlobalContext();
 createErrorHandlers();
 
-let registrationHeartbeat = heartbeats.createHeart(10000);
-registrationHeartbeat.createEvent(1, function(count, last){
-  console.log(count);
-  index.registerWithActivator(app, count);
-})
+  index.registerWithActivator(app);
+
+// let registrationHeartbeat = heartbeats.createHeart(10000);
+// registrationHeartbeat.createEvent(1, function(count, last){
+//   console.log(count);
+//   index.registerWithActivator(app);
+// })
 
 function checkPaths() {
     fs.ensureDirSync(shelfPath)

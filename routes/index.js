@@ -97,13 +97,21 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        if (process.env.KGRID_NODE_CACHE_STRATEGY === "always" && global.cxt.map[idPath]) {
-            res.json(result);
-        } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath] && global.cxt.map[idPath].checksum
-            && global.cxt.map[idPath].checksum === req.body.checksum) {
-            res.json(result);
+        if (global.cxt.map[idPath] === undefined ) {
+          activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
         } else {
-            activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
+          if (process.env.KGRID_NODE_CACHE_STRATEGY === "always" ) {
+              res.json(result);
+          } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath].checksum
+              && global.cxt.map[idPath].checksum === req.body.checksum) {
+              res.json(result);
+          } else if(global.cxt.map[idPath].inprocess){
+              result.status = 'Endpoint is in processing, try again later.';
+              res.status(503).json(result);
+          } else {
+              global.cxt.map[idPath].inprocess = true;
+              activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
+          }
         }
     }
 });
@@ -186,30 +194,20 @@ function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-function registerWithActivator(app, count) {
+function registerWithActivator(app) {
     if(kgridProxyAdapterUrl.endsWith("/")) {
         kgridProxyAdapterUrl = kgridProxyAdapterUrl.substr(0, kgridProxyAdapterUrl.length - 1);
     }
-    console.log("Registration calls:  calling "+kgridProxyAdapterUrl + "/proxy/environments");
-
     axios.post(kgridProxyAdapterUrl + "/proxy/environments",
         {"engine": "node", "version": pjson.version, "url": environmentSelfUrl})
         .then(function (response) {
             console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
                 + JSON.stringify(response.data));
-            let status = response.data.status;
             app.locals.info.activatorUrl = kgridProxyAdapterUrl;
-            if(app.locals.needsRefresh | status =='new') {
-              console.log("After the successful registration, calling "+kgridProxyAdapterUrl + "/activate/node");
-              app.locals.needsRefresh = false;
-              axios.get(kgridProxyAdapterUrl + "/activate/node")
-                  .catch(function (error) {
-                         app.locals.needsRefresh = true;
-                      console.log(error.message)
-                  });
-
-            }
-
+            axios.get(kgridProxyAdapterUrl + "/activate/node")
+                .catch(function (error) {
+                    console.log(error.message)
+                });
         })
         .catch(function (error) {
             if (error.response) {
@@ -223,7 +221,8 @@ function registerWithActivator(app, count) {
 
 function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
     downloadAsset.cleanup(targetPath, idPath);
-    Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath)).then(function (artifacts) {
+    Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath))
+    .then(function (artifacts) {
         artifacts.forEach(function (artifact) {
             let packageFile = path.basename(artifact);
             if (packageFile === "package.json") {
@@ -235,8 +234,6 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
                     installDependencies(targetPath, dep);
                 }
             }
-        }).catch(function(error){
-          console.log(error);
         });
 
         let entryFile = path.join(targetPath, idPath, req.body.entry);
@@ -254,6 +251,7 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
             exec.init(entryFile);
             endpoint.executor = exec;
             endpoint.status = 'Activated';
+
             res.json(result);
         } catch (error) {
             console.log(error)
@@ -262,6 +260,7 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
             res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
         } finally {
             global.cxt.map[idPath] = endpoint
+            global.cxt.map[idPath].inprocess = false
             fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
         }
     })
@@ -272,8 +271,10 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
                     executor: null,
                     activated: new Date(),
                     id: id,
-                    status: errors
+                    status: errors,
+                    inprocess: false
                 };
+                fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
                 res.status(404).send({"description": 'Cannot download ' + errors});
             }, 500);
         });

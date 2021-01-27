@@ -45,8 +45,7 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "shelf/*",
-      "*.json"
+      "shelf"
     ]
   },
   "engines": {

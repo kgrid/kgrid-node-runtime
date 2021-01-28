@@ -110,7 +110,9 @@ router.post('/endpoints', function (req, res) {
               res.status(503).json(result);
           } else {
               global.cxt.map[idPath].inprocess = true;
-              activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
+              // setTimeout(function(){
+                activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result)
+              // }, 5000);
           }
         }
     }
@@ -194,20 +196,29 @@ function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-function registerWithActivator(app) {
+function registerWithActivator(app,forceUpdate) {
     if(kgridProxyAdapterUrl.endsWith("/")) {
         kgridProxyAdapterUrl = kgridProxyAdapterUrl.substr(0, kgridProxyAdapterUrl.length - 1);
     }
+    let reqBody ={};
+    reqBody.engine='node';
+    reqBody.version = pjson.version
+    reqBody.url = environmentSelfUrl
+    reqBody.contextKeys = Object.keys(global.cxt.map);
+    reqBody.forceUpdate = forceUpdate;
     axios.post(kgridProxyAdapterUrl + "/proxy/environments",
-        {"engine": "node", "version": pjson.version, "url": environmentSelfUrl})
+        reqBody)
         .then(function (response) {
             console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
                 + JSON.stringify(response.data));
             app.locals.info.activatorUrl = kgridProxyAdapterUrl;
-            axios.get(kgridProxyAdapterUrl + "/activate/node")
-                .catch(function (error) {
-                    console.log(error.message)
-                });
+            if(response.data.status==='new'){
+              axios.get(kgridProxyAdapterUrl + "/activate/node")
+                  .catch(function (error) {
+                      console.log(error.message)
+                  });
+                }
+
         })
         .catch(function (error) {
             if (error.response) {

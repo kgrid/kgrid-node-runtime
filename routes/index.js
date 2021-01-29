@@ -212,13 +212,6 @@ function registerWithActivator(app,forceUpdate) {
             console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
                 + JSON.stringify(response.data));
             app.locals.info.activatorUrl = kgridProxyAdapterUrl;
-            if(response.data.status==='new'){
-              axios.get(kgridProxyAdapterUrl + "/activate/node")
-                  .catch(function (error) {
-                      console.log(error.message)
-                  });
-                }
-
         })
         .catch(function (error) {
             if (error.response) {

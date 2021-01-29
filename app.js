@@ -45,8 +45,9 @@ createErrorHandlers();
 
 let registrationHeartbeat = heartbeats.createHeart(10000);
 let forceUpdate = process.env.KGRID_NODE_FORCE_UPDATE || false
+let update = false
 registrationHeartbeat.createEvent(1, function(count, last){
-  let update = forceUpdate | (count==1);
+  update = forceUpdate || (count==1);
   index.registerWithActivator(app, update);
 })
 

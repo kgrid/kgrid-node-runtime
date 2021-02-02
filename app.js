@@ -16,6 +16,8 @@ let configJSON = require('./appProperties.json');
 const endpointHash = index.endpointHash;
 const indexRouter = index.router;
 
+var heartbeats = require('heartbeats');
+
 morgan.token('id', function getId(req) {
     return req.id;
 })
@@ -40,7 +42,13 @@ checkPaths();
 setUpExpressApp();
 setUpGlobalContext();
 createErrorHandlers();
-index.registerWithActivator(app);
+
+const heartbeatInterval = process.env.KGRID_PROXY_HEARTBEAT_INTERVAL || 30;
+let registrationHeartbeat = heartbeats.createHeart(1000);
+index.registerWithActivator(app, true);
+registrationHeartbeat.createEvent(heartbeatInterval, function(count, last){
+  index.registerWithActivator(app, false);
+})
 
 function checkPaths() {
     fs.ensureDirSync(shelfPath)
@@ -63,6 +71,7 @@ function setUpExpressApp() {
     app.locals.info.status = "up";
     app.locals.info.url = environmentSelfUrl;
     app.locals.info.activatorUrl = "";
+    app.locals.needsRefresh = true;
     fs.createWriteStream(path.join(__dirname, 'access.log'), {flags: 'a'});
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'pug');

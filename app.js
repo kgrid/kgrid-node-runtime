@@ -43,12 +43,12 @@ setUpExpressApp();
 setUpGlobalContext();
 createErrorHandlers();
 
-let registrationHeartbeat = heartbeats.createHeart(10000);
-let forceUpdate = process.env.KGRID_NODE_FORCE_UPDATE || false
-let update = false
-registrationHeartbeat.createEvent(1, function(count, last){
-  update = forceUpdate || (count==1);
-  index.registerWithActivator(app, update);
+const heartbeatInterval = process.env.KGRID_PROXY_HEARTBEAT_INTERVAL || 30;
+let registrationHeartbeat = heartbeats.createHeart(1000);
+index.registerWithActivator(app, true);
+registrationHeartbeat.createEvent(heartbeatInterval, function(count, last){
+  console.log(Date.now()+"  Heartbeat No. "+count);
+  index.registerWithActivator(app, false);
 })
 
 function checkPaths() {

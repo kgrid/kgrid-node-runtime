@@ -27,7 +27,7 @@ router.get('/context', function (req, res) {
 });
 
 router.get('/register', function (req, res) {
-    registerWithActivator(req.app);
+    registerWithActivator(req.app, true);
     res.send({"Registered with": kgridProxyAdapterUrl});
 });
 

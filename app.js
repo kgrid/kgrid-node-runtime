@@ -47,7 +47,6 @@ const heartbeatInterval = process.env.KGRID_PROXY_HEARTBEAT_INTERVAL || 30;
 let registrationHeartbeat = heartbeats.createHeart(1000);
 index.registerWithActivator(app, true);
 registrationHeartbeat.createEvent(heartbeatInterval, function(count, last){
-  console.log(Date.now()+"  Heartbeat No. "+count);
   index.registerWithActivator(app, false);
 })
 

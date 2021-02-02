@@ -14,7 +14,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "debug": "nodemon --inspect ./bin/www",
-    "test": "mocha --timeout 10000",
+    "test": "mocha --exit --timeout 10000",
     "docs:dev": "vuepress dev docs -p 3000",
     "docs:build": "vuepress build docs"
   },

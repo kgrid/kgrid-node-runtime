@@ -8,7 +8,7 @@ let router = express.Router();
 const axios = require('axios').default;
 let configJSON = require('./../appProperties.json');
 const pjson = require('./../package.json');
-
+const log = require('../lib/logger')
 let kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
 const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
 
@@ -79,7 +79,7 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
 
 /* POST a deployment descriptor to activate */
 router.post('/endpoints', function (req, res) {
-    console.log(req.body);
+    log('debug',req.body);
     let targetPath = req.app.locals.shelfPath;
     let id = "";
     let baseUrl = "";
@@ -97,23 +97,22 @@ router.post('/endpoints', function (req, res) {
         result.uri = idPath;
         result.activated = (new Date()).toString();
         result.status = status
-        if (global.cxt.map[idPath] === undefined ) {
-          activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
+        if (global.cxt.map[idPath] === undefined) {
+            global.cxt.map[idPath] = {'isProcessing': true}
+            activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
         } else {
-          if (process.env.KGRID_NODE_CACHE_STRATEGY === "always" ) {
-              res.json(result);
-          } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath].checksum
-              && global.cxt.map[idPath].checksum === req.body.checksum) {
-              res.json(result);
-          } else if(global.cxt.map[idPath].inprocess){
-              result.status = 'Endpoint is in processing, try again later.';
-              res.status(503).json(result);
-          } else {
-              global.cxt.map[idPath].inprocess = true;
-              // setTimeout(function(){
+            if (process.env.KGRID_NODE_CACHE_STRATEGY === "always") {
+                res.json(result);
+            } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath].checksum
+                && global.cxt.map[idPath].checksum === req.body.checksum) {
+                res.json(result);
+            } else if (global.cxt.map[idPath].isProcessing) {
+                result.status = 'Endpoint is in processing, try again later.';
+                res.status(503).json(result);
+            } else {
+                global.cxt.map[idPath].isProcessing = true;
                 activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result)
-              // }, 5000);
-          }
+            }
         }
     }
 });
@@ -176,7 +175,7 @@ function processEndpointWithGlobalCxtExecutor(key, input) {
             output.result = data;
             resolve(output);
         }).catch(error => {
-            console.log(error);
+            log('debug',error);
             reject(error);
         });
     });
@@ -196,12 +195,12 @@ function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-function registerWithActivator(app,forceUpdate) {
-    if(kgridProxyAdapterUrl.endsWith("/")) {
+function registerWithActivator(app, forceUpdate) {
+    if (kgridProxyAdapterUrl.endsWith("/")) {
         kgridProxyAdapterUrl = kgridProxyAdapterUrl.substr(0, kgridProxyAdapterUrl.length - 1);
     }
-    let reqBody ={};
-    reqBody.engine='node';
+    let reqBody = {};
+    reqBody.engine = 'node';
     reqBody.version = pjson.version
     reqBody.url = environmentSelfUrl
     reqBody.contextKeys = Object.keys(global.cxt.map);
@@ -209,15 +208,17 @@ function registerWithActivator(app,forceUpdate) {
     axios.post(kgridProxyAdapterUrl + "/proxy/environments",
         reqBody)
         .then(function (response) {
-            // console.log("Registered remote environment in activator at " + kgridProxyAdapterUrl + " with resp "
-            //     + JSON.stringify(response.data));
+            log(
+                'debug',
+                `Registered remote environment in activator at ${kgridProxyAdapterUrl} 
+                with response: ${JSON.stringify(response.data)}`)
             app.locals.info.activatorUrl = kgridProxyAdapterUrl;
         })
         .catch(function (error) {
             if (error.response) {
-                console.log(error.response.data);
+                log('debug',error.response.data);
             } else {
-                console.log(error.message);
+                log('debug',error.message);
             }
         });
 }
@@ -226,48 +227,48 @@ function registerWithActivator(app,forceUpdate) {
 function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
     downloadAsset.cleanup(targetPath, idPath);
     Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath))
-    .then(function (artifacts) {
-        artifacts.forEach(function (artifact) {
-            let packageFile = path.basename(artifact);
-            if (packageFile === "package.json") {
-                console.log(packageFile);
-                let pkgJson = require(path.join(targetPath, idPath, packageFile));
-                let dep = pkgJson.dependencies;
-                if (dep) {
-                    console.log(dep);
-                    installDependencies(targetPath, dep);
+        .then(function (artifacts) {
+            artifacts.forEach(function (artifact) {
+                let packageFile = path.basename(artifact);
+                if (packageFile === "package.json") {
+                    log('debug',packageFile);
+                    let pkgJson = require(path.join(targetPath, idPath, packageFile));
+                    let dep = pkgJson.dependencies;
+                    if (dep) {
+                        log('debug',dep);
+                        installDependencies(targetPath, dep);
+                    }
                 }
+            });
+
+            let entryFile = path.join(targetPath, idPath, req.body.entry);
+            let endpoint = {
+                entry: entryFile,
+                executor: null,
+                activated: new Date(),
+                id: id,
+                status: 'Not Activated',
+                checksum: req.body.checksum
             }
-        });
 
-        let entryFile = path.join(targetPath, idPath, req.body.entry);
-        let endpoint = {
-            entry: entryFile,
-            executor: null,
-            activated: new Date(),
-            id: id,
-            status: 'Not Activated',
-            checksum: req.body.checksum
-        }
+            try {
+                let exec = Object.create(executor);
+                exec.init(entryFile);
+                endpoint.executor = exec;
+                endpoint.status = 'Activated';
 
-        try {
-            let exec = Object.create(executor);
-            exec.init(entryFile);
-            endpoint.executor = exec;
-            endpoint.status = 'Activated';
-
-            res.json(result);
-        } catch (error) {
-            console.log(error)
-            downloadAsset.cleanup(targetPath, idPath);
-            endpoint.status = error.message
-            res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
-        } finally {
-            global.cxt.map[idPath] = endpoint
-            global.cxt.map[idPath].inprocess = false
-            fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-        }
-    })
+                res.json(result);
+            } catch (error) {
+                log('debug',error)
+                downloadAsset.cleanup(targetPath, idPath);
+                endpoint.status = error.message
+                res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
+            } finally {
+                global.cxt.map[idPath] = endpoint
+                global.cxt.map[idPath].isProcessing = false
+                fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
+            }
+        })
         .catch(function (errors) {
             setTimeout(function () {
                 downloadAsset.cleanup(targetPath, idPath);
@@ -276,7 +277,7 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
                     activated: new Date(),
                     id: id,
                     status: errors,
-                    inprocess: false
+                    isProcessing: false
                 };
                 fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
                 res.status(404).send({"description": 'Cannot download ' + errors});

@@ -79,12 +79,12 @@ router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
 
 /* POST a deployment descriptor to activate */
 router.post('/endpoints', function (req, res) {
-    log('debug',req.body);
     let targetPath = req.app.locals.shelfPath;
     let id = "";
     let baseUrl = "";
     let idPath;
     if (invalidInput(req.body)) {
+        log('warn', `Could not deploy endpoint: ${req.body.uri}. Error: 400 - Bad Request`)
         res.status(400).send({"description": "Bad Request"});
     } else {
         // Download resources
@@ -175,7 +175,7 @@ function processEndpointWithGlobalCxtExecutor(key, input) {
             output.result = data;
             resolve(output);
         }).catch(error => {
-            log('warn',error);
+            log('warn', error);
             reject(error);
         });
     });
@@ -209,16 +209,16 @@ function registerWithActivator(app, forceUpdate) {
         reqBody)
         .then(function (response) {
             log(
-                'debug',
+                forceUpdate ? 'info' : 'debug',
                 `Registered remote environment in activator at ${kgridProxyAdapterUrl} 
                 with response: ${JSON.stringify(response.data)}`)
             app.locals.info.activatorUrl = kgridProxyAdapterUrl;
         })
         .catch(function (error) {
             if (error.response) {
-                log('warn',error.response.data);
+                log('warn', error.response.data);
             } else {
-                log('warn',error.message);
+                log('warn', error.message);
             }
         });
 }
@@ -231,11 +231,11 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
             artifacts.forEach(function (artifact) {
                 let packageFile = path.basename(artifact);
                 if (packageFile === "package.json") {
-                    log('debug',packageFile);
+                    log('info', packageFile);
                     let pkgJson = require(path.join(targetPath, idPath, packageFile));
                     let dep = pkgJson.dependencies;
                     if (dep) {
-                        log('debug',dep);
+                        log('info', dep);
                         installDependencies(targetPath, dep);
                     }
                 }
@@ -257,9 +257,11 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
                 endpoint.executor = exec;
                 endpoint.status = 'Activated';
 
+                log('info', `Successfully deployed endpoint: ${endpoint.id}`);
+                log('debug', req.body);
                 res.json(result);
             } catch (error) {
-                log('warn',error)
+                log('warn', error)
                 downloadAsset.cleanup(targetPath, idPath);
                 endpoint.status = error.message
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});

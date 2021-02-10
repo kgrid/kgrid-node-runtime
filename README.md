@@ -31,12 +31,16 @@ npm install -g @kgrid/noderuntime
 
 To change the location of the internal storage location for object code set `KGRID_NODE_SHELF_PATH`, otherwise it will be in the `shelf` directory.
 
+To see `DEBUG` level logging, set the environment variable `DEBUG` to `true`
 ## Start the runtime
 
 Start the runtime by
 ```
 kgrid-node
 ```
+
+## Writing a Knowledge Object in Node
+
 
 ## Important Notes
 - Editing the cache directly from the runtime's shelf will

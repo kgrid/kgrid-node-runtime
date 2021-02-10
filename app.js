@@ -1,13 +1,13 @@
 const fs = require('fs-extra');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-const morgan = require('morgan');
 const cors = require('cors');
 const {v4: uuidv4} = require('uuid');
 const bodyParser = require('body-parser');
 let express = require('express');
 let createError = require('http-errors');
 const pkg = require('./package.json');
+const log = require('./lib/logger')
 
 const executor = require('./lib/executor');
 let usersRouter = require('./routes/users');
@@ -17,10 +17,6 @@ const endpointHash = index.endpointHash;
 const indexRouter = index.router;
 
 var heartbeats = require('heartbeats');
-
-morgan.token('id', function getId(req) {
-    return req.id;
-})
 
 let app = express();
 const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
@@ -32,11 +28,9 @@ let shelfPath =
 let contextFilePath = path.join(shelfPath, "context.json");
 let packageFilePath = path.join(shelfPath, "package.json");
 
-console.log(`KGrid Node Runtime ${pkg.version}\n\n`);
-console.log(`Setting Urls from Environment Variables:
-\nKGRID_PROXY_ADAPTER_URL: ${kgridProxyAdapterUrl}
-\nKGRID_NODE_ENV_URL: ${environmentSelfUrl}
-`);
+log('info', `KGrid Node Runtime ${pkg.version}`);
+log('info', `Setting KGRID_PROXY_ADAPTER_URL to: ${kgridProxyAdapterUrl}`)
+log('info', `Setting KGRID_NODE_ENV_URL to: ${environmentSelfUrl}`)
 
 checkPaths();
 setUpExpressApp();
@@ -46,8 +40,8 @@ createErrorHandlers();
 const heartbeatInterval = process.env.KGRID_PROXY_HEARTBEAT_INTERVAL || 30;
 let registrationHeartbeat = heartbeats.createHeart(1000);
 index.registerWithActivator(app, true);
-registrationHeartbeat.createEvent(heartbeatInterval, function(count, last){
-  index.registerWithActivator(app, false);
+registrationHeartbeat.createEvent(heartbeatInterval, function (count, last) {
+    index.registerWithActivator(app, false);
 })
 
 function checkPaths() {
@@ -77,10 +71,7 @@ function setUpExpressApp() {
     app.set('view engine', 'pug');
     app.use(cors());
     app.use(assignId);
-    if (process.env.DEBUG) {
-        app.use(morgan('dev'));
-    }
-    app.use(express.json());
+    app.use(express.json({'strict': false}));
     app.use(bodyParser.text());
     app.use(express.urlencoded({extended: false}));
     app.use(cookieParser());
@@ -101,7 +92,7 @@ function setUpGlobalContext() {
         },
 
         getExecutorByID(uri) {
-           if (this.map[endpointHash(uri)]) {
+            if (this.map[endpointHash(uri)]) {
                 return this.map[endpointHash(uri)].executor;
             } else {
                 return null;

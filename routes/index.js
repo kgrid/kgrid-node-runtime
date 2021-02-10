@@ -143,7 +143,7 @@ router.post('/:endpointHash', function (req, res) {
             output.request_id = req.id;
             res.send(output);
         }).catch(function (error) {
-            res.status(400).send({"description": error});
+            res.status(400).send({"description": error.message});
         });
     } else {
         res.status(404).send({"description": 'Cannot found the endpoint: ' + req.params.endpointHash});
@@ -175,7 +175,8 @@ function processEndpointWithGlobalCxtExecutor(key, input) {
             output.result = data;
             resolve(output);
         }).catch(error => {
-            log('warn', error);
+            log('warn', error.message);
+            log('debug', error);
             reject(error);
         });
     });
@@ -210,15 +211,16 @@ function registerWithActivator(app, forceUpdate) {
         .then(function (response) {
             log(
                 forceUpdate ? 'info' : 'debug',
-                `Registered remote environment in activator at ${kgridProxyAdapterUrl} 
-                with response: ${JSON.stringify(response.data)}`)
+                `Registered remote environment in activator at ${kgridProxyAdapterUrl} with response: ${JSON.stringify(response.data)}`)
             app.locals.info.activatorUrl = kgridProxyAdapterUrl;
         })
         .catch(function (error) {
             if (error.response) {
                 log('warn', error.response.data);
+                log('debug', error);
             } else {
                 log('warn', error.message);
+                log('debug', error);
             }
         });
 }
@@ -261,7 +263,8 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
                 log('debug', req.body);
                 res.json(result);
             } catch (error) {
-                log('warn', error)
+                log('warn', error.message)
+                log('debug', error);
                 downloadAsset.cleanup(targetPath, idPath);
                 endpoint.status = error.message
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});

@@ -39,6 +39,9 @@ Start the runtime by
 kgrid-node
 ```
 
+## Writing a Knowledge Object in Node
+
+
 ## Important Notes
 - Editing the cache directly from the runtime's shelf will
 not propagate changes to the endpoints in the runtime. New

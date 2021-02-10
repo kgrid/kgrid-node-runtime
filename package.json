@@ -31,7 +31,6 @@
     "hashids": "^2.2.2",
     "heartbeats": "^5.0.1",
     "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
     "pug": "^2.0.4",
     "shelljs": "^0.8.4",
     "uuid": "^7.0.3"

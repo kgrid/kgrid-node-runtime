@@ -33,8 +33,8 @@ let shelfPath =
 let contextFilePath = path.join(shelfPath, "context.json");
 let packageFilePath = path.join(shelfPath, "package.json");
 
-log('debug',`KGrid Node Runtime ${pkg.version}\n\n`);
-log('debug',`Setting Urls from Environment Variables:
+log('info',`KGrid Node Runtime ${pkg.version}\n\n`);
+log('info',`Setting Urls from Environment Variables:
 \nKGRID_PROXY_ADAPTER_URL: ${kgridProxyAdapterUrl}
 \nKGRID_NODE_ENV_URL: ${environmentSelfUrl}
 `);

@@ -175,7 +175,7 @@ function processEndpointWithGlobalCxtExecutor(key, input) {
             output.result = data;
             resolve(output);
         }).catch(error => {
-            log('debug',error);
+            log('warn',error);
             reject(error);
         });
     });
@@ -216,9 +216,9 @@ function registerWithActivator(app, forceUpdate) {
         })
         .catch(function (error) {
             if (error.response) {
-                log('debug',error.response.data);
+                log('warn',error.response.data);
             } else {
-                log('debug',error.message);
+                log('warn',error.message);
             }
         });
 }
@@ -259,7 +259,7 @@ function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
 
                 res.json(result);
             } catch (error) {
-                log('debug',error)
+                log('warn',error)
                 downloadAsset.cleanup(targetPath, idPath);
                 endpoint.status = error.message
                 res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});

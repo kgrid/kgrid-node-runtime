@@ -40,7 +40,7 @@
     "chai-http": "^4.3.0",
     "mocha": "^7.2.0",
     "nodemon": "^2.0.6",
-    "vuepress": "^1.7.1"
+    "vuepress": "^1.8.2"
   },
   "nodemonConfig": {
     "ignore": [

@@ -10,7 +10,7 @@ orbs:
 jobs:
   vuepress_deploy:
     docker:
-      - image: circleci/node:10.17.0
+      - image: circleci/node:14.16
     steps:
       - checkout
       - node/install-packages

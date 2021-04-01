@@ -3,7 +3,7 @@
 KGrid Node Runtime, enabled by express server is a runtime that connects to the proxy adapter in an activator and can be used to run nodejs objects.
 
 ## Installation
-
+Make sure you have [node.js](https://nodejs.org) 11.0 or later installed. To download and install the node runtime run
 ```
 npm install -g @kgrid/noderuntime
 ```

@@ -8,25 +8,35 @@ Make sure you have [node.js](https://nodejs.org) 11.0 or later installed. To dow
 npm install -g @kgrid/noderuntime
 ```
 
+## Endpoints
+
+The runtime exposes two endpoints which can be used to see the details of the runtime and what has been activated
+
+### `GET /info`
+Displays details about the runtime such as the running version and status.
+
+### `GET /endpoints`
+Displays a list of the activated endpoints in the engine.
+
 ## Configuration
 
-###`KGRID_PROXY_ADAPTER_URL`
+### `KGRID_PROXY_ADAPTER_URL`
 - URL of the activator that will communicate with this runtime
 - Default value: `http://localhost:8080`
 
-###`KGRID_NODE_ENV_URL`
+### `KGRID_NODE_ENV_URL`
 - The url of this runtime that is accessible to the activator.
 - Default value: `http://localhost:3000`
 
-###`KGRID_NODE_ENV_PORT`
+### `KGRID_NODE_ENV_PORT`
 - The port this runtime will be accessible on.
 - Default value: `3000`
 
-###`KGRID_PROXY_HEARTBEAT_INTERVAL`
+### `KGRID_PROXY_HEARTBEAT_INTERVAL`
 - The interval (in seconds) of the heartbeat when this runtime will ping and try to reconnect to the activator. The value of 0 or negative number will disable the heartbeat.
 - Default value:`30`
 
-###`KGRID_NODE_CACHE_STRATEGY`
+### `KGRID_NODE_CACHE_STRATEGY`
 - Sets if the objects are cached or overwritten on each activation call. Can take three values: `never`, `always`, or `use_checksum`
 
     - `never` means that existing objects will be overwritten whenever objects are re-downloaded from the activator.
@@ -34,11 +44,11 @@ npm install -g @kgrid/noderuntime
     - `use_checksum` means that objects will look for a checksum in the deployment descriptor sent over during activation and only re-download the object if that checksum has changed.
 - Default value: `never`
 
-###`KGRID_NODE_SHELF_PATH`
+### `KGRID_NODE_SHELF_PATH`
 - Sets the location of the objects' code storage directory.
 - Default: `shelf`
 
-###`DEBUG`
+### `DEBUG`
 - Changes the logging level to debug, takes a boolean `true`/`false`
 - Default: `false`
 
@@ -74,10 +84,9 @@ You would then execute this endpoint to see the code work:
 `POST <activator url>/<naan>/<name>/<api version>/<endpoint>`
 
 In this example: `POST <activator url>/hello/neighbor/1.0/welcome`
-##Examples
+## Examples
 An example KO can be found in our [example collection](https://github.com/kgrid-objects/example-collection/releases/latest) here:
 [node/simple/1.0](https://github.com/kgrid-objects/example-collection/releases/latest/download/node-simple-v1.0.zip)
-
 
 ## Important Notes
 - Editing the cache directly from the runtime's shelf will

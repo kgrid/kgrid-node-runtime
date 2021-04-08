@@ -88,6 +88,54 @@ In this example: `POST <activator url>/hello/neighbor/1.0/welcome`
 An example KO can be found in our [example collection](https://github.com/kgrid-objects/example-collection/releases/latest) here:
 [node/simple/1.0](https://github.com/kgrid-objects/example-collection/releases/latest/download/node-simple-v1.0.zip)
 
+
+## Build and Deploy a cloud native image
+
+### Build the image of kgrid-node-Runtime
+
+Use the following command to build the image:
+```
+ sudo docker build -t kgrid/noderuntime .
+```
+
+### Push to DockerHub
+Use the following command to push the image:
+```
+ sudo docker push kgrid/noderuntime:#.#.#
+```
+
+### Run the image locally
+ Use the following command to run the image on Linux:
+```
+ sudo docker run --network host kgrid/noderuntime
+```
+
+ Use the following command to run the image on Windows:
+```
+ docker run -it -p :3000:3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/noderuntime
+```
+
+### Pushing an image directly to Heroku
+1. Log in to Heroku by	`heroku login`
+
+1. Log in to Heroku Container Registry by `heroku container:login`
+
+1. Tag the image with (change #.#.# to version)
+   ```bash
+   docker tag <image> registry.heroku.com/<app>/web
+   ```
+   `<image>` will be `kgrid/noderuntime:###`
+
+1. Push to Heroku:
+   ```bash
+   docker push registry.heroku.com/<app>/web
+   ```
+1. Release the image so Heroku can start the deployment process
+   ```bash
+   heroku container:release web -a <app>
+   ```
+
+
 ## Important Notes
 - Editing the cache directly from the runtime's shelf will
 not propagate changes to the endpoints in the runtime. New

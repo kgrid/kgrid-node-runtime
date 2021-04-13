@@ -8,6 +8,23 @@ Make sure you have [node.js](https://nodejs.org) 11.0 or later installed. To dow
 npm install -g @kgrid/noderuntime
 ```
 
+## Installation from an image:
+
+- Download the latest image from docker hub: `docker pull kgrid/noderuntime:#.#.#` where `#.#.#` is the latest version
+
+- Use the following command to run the image on Linux:
+```
+ sudo docker run --network host kgrid/noderuntime
+```
+Or
+- Use the following command to run the image on Windows:
+```
+ docker run -it -p :3000:3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/noderuntime
+```
+
+This starts the runtime pointed to an activator running on the same system at localhost:8080
+
+
 ## Endpoints
 
 The runtime exposes two endpoints which can be used to see the details of the runtime and what has been activated

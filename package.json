@@ -33,6 +33,7 @@
     "http-errors": "~1.6.3",
     "pug": "^3.0.1",
     "shelljs": "^0.8.4",
+    "uri-js": "^4.4.1",
     "uuid": "^7.0.3"
   },
   "devDependencies": {

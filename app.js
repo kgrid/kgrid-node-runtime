@@ -4,29 +4,22 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const {v4: uuidv4} = require('uuid');
 const bodyParser = require('body-parser');
-let express = require('express');
-let createError = require('http-errors');
+const express = require('express');
+const createError = require('http-errors');
 const pkg = require('./package.json');
 const log = require('./lib/logger')
-
 const executor = require('./lib/executor');
-let usersRouter = require('./routes/users');
-const index = require('./routes/index');
-let configJSON = require('./appProperties.json');
-const endpointHash = index.endpointHash;
-const indexRouter = index.router;
+const registerWithActivator = require('./lib/registration');
+const indexRouter = require('./routes/index').router;
+const heartbeats = require('heartbeats');
 
-var heartbeats = require('heartbeats');
+const kgridProxyAdapterUrl = require('./lib/paths').kgridProxyAdapterUrl;
+const environmentSelfUrl = require('./lib/paths').environmentSelfUrl;
+const shelfPath = require('./lib/paths').shelfPath;
+const contextFilePath = require('./lib/paths').contextFilePath;
+const packageFilePath = require('./lib/paths').packageFilePath;
 
 let app = express();
-const kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
-const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
-let shelfPath =
-    process.env.KGRID_NODE_SHELF_PATH
-        ? path.join(process.cwd(), process.env.KGRID_NODE_SHELF_PATH)
-        : path.join(process.cwd(), 'shelf');
-let contextFilePath = path.join(shelfPath, "context.json");
-let packageFilePath = path.join(shelfPath, "package.json");
 
 log('info', `KGrid Node Runtime ${pkg.version}`);
 log('info', `Setting KGRID_PROXY_ADAPTER_URL to: ${kgridProxyAdapterUrl}`)
@@ -39,9 +32,9 @@ createErrorHandlers();
 
 const heartbeatInterval = process.env.KGRID_PROXY_HEARTBEAT_INTERVAL || 30;
 let registrationHeartbeat = heartbeats.createHeart(1000);
-index.registerWithActivator(app, true);
+registerWithActivator(app, true);
 registrationHeartbeat.createEvent(heartbeatInterval, function (count, last) {
-    index.registerWithActivator(app, false);
+    registerWithActivator(app, false);
 })
 
 function checkPaths() {
@@ -59,12 +52,12 @@ function checkPaths() {
 function setUpExpressApp() {
     app.locals.shelfPath = shelfPath;
     app.locals.info = {};
+    app.locals.info.url = environmentSelfUrl;
+    app.locals.info.activatorUrl = kgridProxyAdapterUrl;
     app.locals.info.app = pkg.name;
     app.locals.info.version = pkg.version;
     app.locals.info.engine = "node";
     app.locals.info.status = "up";
-    app.locals.info.url = environmentSelfUrl;
-    app.locals.info.activatorUrl = "";
     app.locals.needsRefresh = true;
     fs.createWriteStream(path.join(__dirname, 'access.log'), {flags: 'a'});
     app.set('views', path.join(__dirname, 'views'));
@@ -77,7 +70,6 @@ function setUpExpressApp() {
     app.use(cookieParser());
     app.use(express.static(path.join(__dirname, 'public')));
     app.use('/', indexRouter);
-    app.use('/users', usersRouter);
 }
 
 function setUpGlobalContext() {
@@ -92,8 +84,8 @@ function setUpGlobalContext() {
         },
 
         getExecutorByID(uri) {
-            if (this.map[endpointHash(uri)]) {
-                return this.map[endpointHash(uri)].executor;
+            if (this.map[uri]) {
+                return this.map[uri].executor;
             } else {
                 return null;
             }

@@ -69,6 +69,11 @@ Displays a list of the activated endpoints in the engine.
 - Changes the logging level to debug, takes a boolean `true`/`false`
 - Default: `false`
 
+### `NODE_PATH`
+- Specifies the relative path for the alternative location where the dependencies are installed 
+- Default: `kgrid_node/node_modules`
+
+
 ## Start the runtime
 
 Start the runtime by running

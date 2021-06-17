@@ -17,7 +17,6 @@ const kgridProxyAdapterUrl = require('./lib/paths').kgridProxyAdapterUrl;
 const environmentSelfUrl = require('./lib/paths').environmentSelfUrl;
 const shelfPath = require('./lib/paths').shelfPath;
 const contextFilePath = require('./lib/paths').contextFilePath;
-const packageFilePath = require('./lib/paths').packageFilePath;
 
 let app = express();
 
@@ -42,10 +41,6 @@ function checkPaths() {
     if (!fs.pathExistsSync(contextFilePath)) {
         fs.ensureFileSync(contextFilePath)
         fs.writeJSONSync(contextFilePath, {}, {spaces: 4})
-    }
-    if (!fs.pathExistsSync(packageFilePath)) {
-        fs.ensureFileSync(packageFilePath)
-        fs.writeJSONSync(packageFilePath, {"name": "expressActivatorShelf"}, {spaces: 4})
     }
 }
 

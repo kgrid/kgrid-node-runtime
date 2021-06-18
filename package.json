@@ -13,6 +13,7 @@
   },
   "scripts": {
     "start": "export NODE_PATH=$(pwd)/kgrid_node/node_modules && node ./bin/www",
+    "winstart": "set NODE_PATH=%cd%\\kgrid_node\\node_modules&& node ./bin/www",
     "debug": "nodemon --inspect ./bin/www",
     "test": "mocha --exit --timeout 10000",
     "docs:dev": "vuepress dev docs -p 3000",

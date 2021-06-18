@@ -62,16 +62,13 @@ Displays a list of the activated endpoints in the engine.
 - Default value: `never`
 
 ### `KGRID_NODE_SHELF_PATH`
-- Sets the location of the objects' code storage directory.
+- Sets the location of the objects' code storage directory. 
 - Default: `shelf`
-
+- Note: If this variable is set to the activator's shelf, the runtime will use the existing artifacts for the activation, without the need to fetch them through the `/proxy/artifacts` endpoints.
+  
 ### `DEBUG`
 - Changes the logging level to debug, takes a boolean `true`/`false`
 - Default: `false`
-
-### `NODE_PATH`
-- Specifies the relative path for the alternative location where the dependencies are installed 
-- Default: `kgrid_node/node_modules`
 
 
 ## Start the runtime

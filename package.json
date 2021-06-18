@@ -12,7 +12,7 @@
     "kgrid-node": "./bin/www"
   },
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "export NODE_PATH=$(pwd)/kgrid_node/node_modules && node ./bin/www",
     "debug": "nodemon --inspect ./bin/www",
     "test": "mocha --exit --timeout 10000",
     "docs:dev": "vuepress dev docs -p 3000",

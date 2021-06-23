@@ -8,7 +8,7 @@ const findEndpoint = require('../lib/findEndpoint')
 const registerWithActivator = require('../lib/registration')
 const activateEndpoint = require('../lib/activation')
 const installDependencies = require('../lib/dependencies')
-
+const {shouldLoadFromCache} = require('../lib/downloadasset');
 /* GET home page. */
 router.get('/', function (req, res) {
     res.render('index', {title: 'KGrid Node Runtime', tagline: 'Running Knowledge Objects written in JavaScript'});
@@ -60,7 +60,8 @@ router.post('/endpoints', function (req, res) {
         if (global.cxt.map[id] && global.cxt.map[id].isProcessing) {
             result.status = 'Endpoint is in processing, try again later.';
             res.status(503).json(result);
-        } else if (global.cxt.map[id] && process.env.KGRID_NODE_LOAD_FROM_CACHE) {
+        } else if (global.cxt.map[id] && shouldLoadFromCache()) {
+           log('info','Using the cached endpoint '+id);
             res.json(result);
         } else {
             activateEndpoint(baseUrl, id, req, res, result);

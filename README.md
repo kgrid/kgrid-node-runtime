@@ -63,6 +63,7 @@ Displays a list of the activated endpoints in the engine.
 - Sets the location of the objects' code storage directory. 
 - Default: `shelf`
 - Note: If this variable is set to the activator's shelf, the runtime will use the existing artifacts for the activation, without the need to fetch them through the `/proxy/artifacts` endpoints.
+- Note: If this directory is read only, you must set `KGRID_NODE_LOAD_FROM_CACHE` to `true`
 
 ### `NODE_PATH`
 - Sets the system location for installing node modules specified in package.json files inside KO's.

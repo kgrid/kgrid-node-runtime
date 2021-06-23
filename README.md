@@ -65,11 +65,17 @@ Displays a list of the activated endpoints in the engine.
 - Sets the location of the objects' code storage directory. 
 - Default: `shelf`
 - Note: If this variable is set to the activator's shelf, the runtime will use the existing artifacts for the activation, without the need to fetch them through the `/proxy/artifacts` endpoints.
-  
+
+### `NODE_PATH`
+- Sets the system location for installing node modules specified in package.json files inside KO's.
+- Default: none
+- If using a released version of the node runtime, you must set `NODE_PATH` to `kgrid_node/node_modules` in the current directory. Otherwise, your KO's will not be able to require node packages.
+    - Unix: `export NODE_PATH=$(pwd)/kgrid_node/node_modules`
+    - Windows: `set NODE_PATH=%cd%\kgrid_node\node_modules`
+
 ### `DEBUG`
 - Changes the logging level to debug, takes a boolean `true`/`false`
 - Default: `false`
-
 
 ## Start the runtime
 

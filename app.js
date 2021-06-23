@@ -54,7 +54,6 @@ function setUpExpressApp() {
     app.locals.info.engine = "node";
     app.locals.info.status = "up";
     app.locals.needsRefresh = true;
-    fs.createWriteStream(path.join(__dirname, 'access.log'), {flags: 'a'});
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'pug');
     app.use(cors());

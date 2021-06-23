@@ -53,26 +53,6 @@ Displays a list of the activated endpoints in the engine.
 - The interval (in seconds) of the heartbeat when this runtime will ping and try to reconnect to the activator. The value of 0 or negative number will disable the heartbeat.
 - Default value:`30`
 
-### `ACTIVATE_ON_STARTUP`
-- if `TRUE`
-  - Activate everything in `context.json`
-- if `FALSE`
-  - activate only on receipt of activation messages
-
-     
-### `USE_CACHED_ENDPOINTS`
-- if `TRUE`
-    - On activation message (or at startup)
-      - if in memory done
-      - else activate from local, remote, proxy, and update in `context.json` 
-- `FALSE`
-    - At startup delete "local" artifacts and `context.json`
-    - On activation message or startup 
-      - if in memory discard and (re)activate
-      - if not, activate 
-      - always update local cache and `context.json`
-
-
 ### `KGRID_NODE_CACHE_STRATEGY` (What is the startup behavior?)
 - Sets if the objects are cached or overwritten on each activation call. Can take three values: `never`, `always`, or `use_checksum`
 

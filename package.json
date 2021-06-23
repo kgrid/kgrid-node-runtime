@@ -1,6 +1,6 @@
 {
   "name": "@kgrid/noderuntime",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "KGrid Node Runtime",
   "author": "kgrid",
   "repository": {
@@ -12,7 +12,9 @@
     "kgrid-node": "./bin/www"
   },
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "run-script-os",
+    "start:linux:darwin": "export NODE_PATH=$(pwd)/kgrid_node/node_modules && node ./bin/www",
+    "start:win32": "set NODE_PATH=%cd%\\kgrid_node\\node_modules&& node ./bin/www",
     "debug": "nodemon --inspect ./bin/www",
     "test": "mocha --exit --timeout 10000",
     "docs:dev": "vuepress dev docs -p 3000",
@@ -33,6 +35,7 @@
     "http-errors": "~1.6.3",
     "pug": "^3.0.1",
     "shelljs": "^0.8.4",
+    "uri-js": "^4.4.1",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
@@ -40,6 +43,7 @@
     "chai-http": "^4.3.0",
     "mocha": "^7.2.0",
     "nodemon": "^2.0.6",
+    "run-script-os": "^1.1.6",
     "vuepress": "^1.8.2"
   },
   "nodemonConfig": {

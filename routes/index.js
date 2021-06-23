@@ -1,16 +1,13 @@
 let express = require('express');
-const downloadAsset = require('../lib/downloadasset');
-let fs = require('fs-extra');
-const path = require('path');
-const shelljs = require('shelljs');
-const executor = require('../lib/executor');
+const fs = require('fs-extra');
 let router = express.Router();
-const axios = require('axios').default;
-let configJSON = require('./../appProperties.json');
-const pjson = require('./../package.json');
 const log = require('../lib/logger')
-let kgridProxyAdapterUrl = process.env.KGRID_PROXY_ADAPTER_URL || configJSON.kgrid_proxy_adapter_url;
-const environmentSelfUrl = process.env.KGRID_NODE_ENV_URL || configJSON.kgrid_node_env_url;
+const kgridProxyAdapterUrl = require('../lib/paths').kgridProxyAdapterUrl
+const shelfPath = require('../lib/paths').shelfPath
+const findEndpoint = require('../lib/findEndpoint')
+const registerWithActivator = require('../lib/registration')
+const activateEndpoint = require('../lib/activation')
+const installDependencies = require('../lib/dependencies')
 
 /* GET home page. */
 router.get('/', function (req, res) {
@@ -34,84 +31,46 @@ router.get('/register', function (req, res) {
 router.get('/endpoints', function (req, res) {
     let epArray = [];
     for (let key in global.cxt.map) {
-        let endpoint = global.cxt.map[key];
-        let baseUrl = req.app.locals.info.url;
-        let url;
-        if (baseUrl.endsWith('/')) {
-            url = baseUrl + key;
-        } else {
-            url = baseUrl + '/' + key;
-        }
-        epObj = {
-            "id": endpoint.id,
-            "activated": endpoint.activated,
-            "status": endpoint.status
-        }
-        if (endpoint.status === "Activated") {
-            epObj.url = url;
-        }
+        const epObj = findEndpoint(key, req);
         epArray.push(epObj);
     }
     res.send(epArray);
 });
 
 router.get('/endpoints/:naan/:name/:version/:endpoint', function (req, res) {
-    let uri = req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
-    let key = endpointHash(uri);
-    let endpoint = global.cxt.map[key];
-    let baseUrl = req.app.locals.info.url;
-    let url;
-    if (baseUrl.endsWith('/')) {
-        url = baseUrl + key;
-    } else {
-        url = baseUrl + '/' + key;
-    }
-    epObj = {
-        "id": endpoint.id,
-        "activated": endpoint.activated,
-        "status": endpoint.status
-    }
-    if (endpoint.status === "Activated") {
-        epObj.url = url;
-    }
+    let uri = constructUri(req);
+    const epObj = findEndpoint(uri, req);
     res.send(epObj);
 });
 
 /* POST a deployment descriptor to activate */
 router.post('/endpoints', function (req, res) {
-    let targetPath = req.app.locals.shelfPath;
-    let id = "";
-    let baseUrl = "";
-    let idPath;
     if (invalidInput(req.body)) {
         log('warn', `Could not deploy endpoint: ${req.body.uri}. Error: 400 - Bad Request`)
         res.status(400).send({"description": "Bad Request"});
     } else {
-        // Download resources
-        let status = "Activated";
-        id = req.body.uri;
-        idPath = endpointHash(id);
-        baseUrl = req.body.baseUrl || "";
+        let id = req.body.uri;
+        let baseUrl = req.body.baseUrl || "";
         let result = {};
         result.id = id;
-        result.uri = idPath;
+        result.uri = id;
         result.activated = (new Date()).toString();
-        result.status = status
-        if (global.cxt.map[idPath] === undefined) {
-            global.cxt.map[idPath] = {'isProcessing': true}
-            activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result);
+        result.status = "Activated"
+        if (global.cxt.map[id] === undefined) {
+            global.cxt.map[id] = {'isProcessing': true}
+            activateEndpoint(baseUrl, id, req, res, result);
         } else {
             if (process.env.KGRID_NODE_CACHE_STRATEGY === "always") {
                 res.json(result);
-            } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[idPath].checksum
-                && global.cxt.map[idPath].checksum === req.body.checksum) {
+            } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[id].checksum
+                && global.cxt.map[id].checksum === req.body.checksum) {
                 res.json(result);
-            } else if (global.cxt.map[idPath].isProcessing) {
+            } else if (global.cxt.map[id].isProcessing) {
                 result.status = 'Endpoint is in processing, try again later.';
                 res.status(503).json(result);
             } else {
-                global.cxt.map[idPath].isProcessing = true;
-                activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result)
+                global.cxt.map[id].isProcessing = true;
+                activateEndpoint(baseUrl, id, req, res, result);
             }
         }
     }
@@ -119,10 +78,9 @@ router.post('/endpoints', function (req, res) {
 
 /* POST dependencies to install*/
 router.post('/dependencies', function (req, res) {
-    let targetPath = req.app.locals.shelfPath;
-    fs.ensureDirSync(targetPath);
+    fs.ensureDirSync(shelfPath);
     if (req.body.dependencies) {
-        let hasError = installDependencies(targetPath, req.body.dependencies);
+        let hasError = installDependencies(req.body.dependencies);
         if (hasError) {
             res.status(400).send({"description": "Failed installing dependencies"});
         } else {
@@ -137,35 +95,20 @@ router.get('/mem', function (req, res) {
     res.send(process.memoryUsage());
 });
 
-router.post('/:endpointHash', function (req, res) {
-    if (global.cxt.map[req.params.endpointHash]) {
-        processEndpointWithGlobalCxtExecutor(req.params.endpointHash, req.body).then(function (output) {
+router.post('/:naan/:name/:version/:endpoint', function (req, res) {
+    let endpointUri = constructUri(req);
+    if (global.cxt.map[endpointUri]) {
+        processEndpointWithGlobalCxtExecutor(endpointUri, req.body).then(function (output) {
             output.request_id = req.id;
             res.send(output);
         }).catch(function (error) {
             res.status(400).send({"description": error.message});
         });
     } else {
-        res.status(404).send({"description": 'Cannot found the endpoint: ' + req.params.endpointHash});
+        res.status(404).send({"description": 'Cannot found the endpoint: ' + endpointUri});
     }
 });
 
-function installDependencies(targetPath, dependencies) {
-    shelljs.cd(targetPath);
-    let hasError = false;
-    for (let key in dependencies) {
-        if (dependencies[key].startsWith('http') || dependencies[key].startsWith('https')) {
-            if (shelljs.error(shelljs.exec('npm install --save ' + dependencies[key]))) {
-                hasError = true;
-            }
-        } else {
-            if (shelljs.error(shelljs.exec('npm install --save ' + key))) {
-                hasError = true;
-            }
-        }
-    }
-    return hasError;
-}
 
 function processEndpointWithGlobalCxtExecutor(key, input) {
     let func = global.cxt.getExecutorByHash(key);
@@ -182,112 +125,12 @@ function processEndpointWithGlobalCxtExecutor(key, input) {
     });
 }
 
-function endpointHash(uri) {
-    let hash = 0, i, chr;
-    for (i = 0; i < uri.length; i++) {
-        chr = uri.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
-        hash |= 0; // Convert to 32bit integer
-    }
-    return hash + "";
-}
-
 function invalidInput(obj) {
     return !(obj.artifact && obj.entry && obj.uri && obj.artifact !== "")
 }
 
-function registerWithActivator(app, forceUpdate) {
-    if (kgridProxyAdapterUrl.endsWith("/")) {
-        kgridProxyAdapterUrl = kgridProxyAdapterUrl.substr(0, kgridProxyAdapterUrl.length - 1);
-    }
-    let reqBody = {};
-    reqBody.engine = 'node';
-    reqBody.version = pjson.version
-    reqBody.url = environmentSelfUrl
-    reqBody.contextKeys = Object.keys(global.cxt.map);
-    reqBody.forceUpdate = forceUpdate;
-    axios.post(kgridProxyAdapterUrl + "/proxy/environments",
-        reqBody)
-        .then(function (response) {
-            log(
-                forceUpdate ? 'info' : 'debug',
-                `Registered remote environment in activator at ${kgridProxyAdapterUrl} with response: ${JSON.stringify(response.data)}`)
-            app.locals.info.activatorUrl = kgridProxyAdapterUrl;
-        })
-        .catch(function (error) {
-            if (error.response) {
-                log('warn', error.response.data);
-                log('debug', error);
-            } else {
-                log('warn', error.message);
-                log('debug', error);
-            }
-        });
+function constructUri(req) {
+    return req.params.naan + "/" + req.params.name + "/" + req.params.version + "/" + req.params.endpoint;
 }
 
-
-function activateEndpoint(targetPath, idPath, baseUrl, req, id, res, result) {
-    downloadAsset.cleanup(targetPath, idPath);
-    Promise.all(downloadAsset.download_files(baseUrl, req.body.artifact, targetPath, idPath))
-        .then(function (artifacts) {
-            artifacts.forEach(function (artifact) {
-                let packageFile = path.basename(artifact);
-                if (packageFile === "package.json") {
-                    log('info', packageFile);
-                    let pkgJson = require(path.join(targetPath, idPath, packageFile));
-                    let dep = pkgJson.dependencies;
-                    if (dep) {
-                        log('info', dep);
-                        installDependencies(targetPath, dep);
-                    }
-                }
-            });
-
-            let entryFile = path.join(targetPath, idPath, req.body.entry);
-            let endpoint = {
-                entry: entryFile,
-                executor: null,
-                activated: new Date(),
-                id: id,
-                status: 'Not Activated',
-                checksum: req.body.checksum
-            }
-
-            try {
-                let exec = Object.create(executor);
-                exec.init(entryFile);
-                endpoint.executor = exec;
-                endpoint.status = 'Activated';
-
-                log('info', `Successfully deployed endpoint: ${endpoint.id}`);
-                log('debug', req.body);
-                res.json(result);
-            } catch (error) {
-                log('warn', error.message)
-                log('debug', error);
-                downloadAsset.cleanup(targetPath, idPath);
-                endpoint.status = error.message
-                res.status(400).send({"description": "Cannot create executor." + error, "stack": error.stack});
-            } finally {
-                global.cxt.map[idPath] = endpoint
-                global.cxt.map[idPath].isProcessing = false
-                fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-            }
-        })
-        .catch(function (errors) {
-            setTimeout(function () {
-                downloadAsset.cleanup(targetPath, idPath);
-                global.cxt.map[idPath] = {
-                    executor: null,
-                    activated: new Date(),
-                    id: id,
-                    status: errors,
-                    isProcessing: false
-                };
-                fs.writeJSONSync(path.join(req.app.locals.shelfPath, 'context.json'), global.cxt.map, {spaces: 4});
-                res.status(404).send({"description": 'Cannot download ' + errors});
-            }, 500);
-        });
-}
-
-module.exports = {router, endpointHash: endpointHash, registerWithActivator};
+module.exports = {router};

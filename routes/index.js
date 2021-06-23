@@ -56,22 +56,14 @@ router.post('/endpoints', function (req, res) {
         result.uri = id;
         result.activated = (new Date()).toString();
         result.status = "Activated"
-        if (global.cxt.map[id] === undefined) {
-            global.cxt.map[id] = {'isProcessing': true}
-            activateEndpoint(baseUrl, id, req, res, result);
+
+        if (global.cxt.map[id] && global.cxt.map[id].isProcessing) {
+            result.status = 'Endpoint is in processing, try again later.';
+            res.status(503).json(result);
+        } else if (global.cxt.map[id] && process.env.KGRID_NODE_LOAD_FROM_CACHE) {
+            res.json(result);
         } else {
-            if (process.env.KGRID_NODE_CACHE_STRATEGY === "always") {
-                res.json(result);
-            } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[id].checksum
-                && global.cxt.map[id].checksum === req.body.checksum) {
-                res.json(result);
-            } else if (global.cxt.map[id].isProcessing) {
-                result.status = 'Endpoint is in processing, try again later.';
-                res.status(503).json(result);
-            } else {
-                global.cxt.map[id].isProcessing = true;
-                activateEndpoint(baseUrl, id, req, res, result);
-            }
+            activateEndpoint(baseUrl, id, req, res, result);
         }
     }
 });

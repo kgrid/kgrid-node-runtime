@@ -53,13 +53,11 @@ Displays a list of the activated endpoints in the engine.
 - The interval (in seconds) of the heartbeat when this runtime will ping and try to reconnect to the activator. The value of 0 or negative number will disable the heartbeat.
 - Default value:`30`
 
-### `KGRID_NODE_CACHE_STRATEGY` (What is the startup behavior?)
-- Sets if the objects are cached or overwritten on each activation call. Can take three values: `never`, `always`, or `use_checksum`
-
-    - `never` means that existing objects will be overwritten whenever objects are re-downloaded from the activator.
-    - `always` means that existing objects stored in the node runtime will never be re-downloaded from the activator and the local shelf and context.json files must be deleted and the runtime restarted for the objects to be replaced.
-    - `use_checksum` means that objects will look for a checksum in the deployment descriptor sent over during activation and only re-download the object if that checksum has changed.
-- Default value: `never`
+### `KGRID_NODE_LOAD_FROM_CACHE` (What is the startup behavior?)
+- Sets if the objects are cached or overwritten on each activation call
+    - `true` means the node runtime will attempt to load endpoints from its internal cache on startup, and when receiving activation messages
+    - `false` means the node runtime will always load endpoints new, and anything in its cache will be overwritten on startup, or when receiving activation messages.
+- Default value: `false`
 
 ### `KGRID_NODE_SHELF_PATH`
 - Sets the location of the objects' code storage directory. 

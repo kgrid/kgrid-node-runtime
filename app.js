@@ -8,6 +8,7 @@ const express = require('express');
 const createError = require('http-errors');
 const pkg = require('./package.json');
 const log = require('./lib/logger')
+const {shouldLoadFromCache} = require('./lib/downloadasset')
 const executor = require('./lib/executor');
 const registerWithActivator = require('./lib/registration');
 const indexRouter = require('./routes/index').router;
@@ -85,16 +86,32 @@ function setUpGlobalContext() {
             }
         },
     }
-
     global.cxt.map = require(contextFilePath)
+    if (shouldLoadFromCache()) {
+        loadFilesFromContext();
+    } else {
+        log('info','Invalidating Cache')
+        fs.writeJSONSync(contextFilePath, {}, {spaces: 4});
+    }
+}
+
+function loadFilesFromContext() {
     if (Object.keys(global.cxt.map).length > 0) {
         for (let key in global.cxt.map) {
             if (global.cxt.map[key].status === 'Activated') {
                 const exec = Object.create(executor);
-                exec.init(global.cxt.map[key].entry);
-                global.cxt.map[key].executor = exec;
+                let entryFile = global.cxt.map[key].entry;
+                if (fs.existsSync(entryFile)) {
+                    log('info', 'Loading file from cache: ' + entryFile)
+                    exec.init(entryFile);
+                    global.cxt.map[key].executor = exec;
+                } else {
+                    log('info', 'Deleting invalid entry cache: ' + key)
+                    delete global.cxt.map[key]
+                }
             }
         }
+        fs.writeJSONSync(contextFilePath, global.cxt.map, {spaces: 4});
     }
 }
 

@@ -61,7 +61,7 @@ router.post('/endpoints', function (req, res) {
             result.status = 'Endpoint is in processing, try again later.';
             res.status(503).json(result);
         } else if (global.cxt.map[id] && shouldLoadFromCache()) {
-           log('info','Using the cached endpoint '+id);
+            log('info', 'Using the cached endpoint ' + id);
             res.json(result);
         } else {
             activateEndpoint(baseUrl, id, req, res, result);

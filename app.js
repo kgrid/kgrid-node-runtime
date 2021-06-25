@@ -18,7 +18,7 @@ const kgridProxyAdapterUrl = require('./lib/paths').kgridProxyAdapterUrl;
 const environmentSelfUrl = require('./lib/paths').environmentSelfUrl;
 const shelfPath = require('./lib/paths').shelfPath;
 const contextFilePath = require('./lib/paths').contextFilePath;
-
+const localCachePath = require('./lib/paths').localCachePath
 let app = express();
 
 log('info', `KGrid Node Runtime ${pkg.version}`);
@@ -90,7 +90,9 @@ function setUpGlobalContext() {
     if (shouldLoadFromCache()) {
         loadFilesFromContext();
     } else {
-        log('info','Invalidating Cache')
+        log('info','Invalidating Cache');
+        fs.removeSync(localCachePath);
+        fs.ensureFileSync(contextFilePath);
         fs.writeJSONSync(contextFilePath, {}, {spaces: 4});
     }
 }

@@ -6,7 +6,7 @@ const kgridProxyAdapterUrl = require('../lib/paths').kgridProxyAdapterUrl
 const shelfPath = require('../lib/paths').shelfPath
 const findEndpoint = require('../lib/findEndpoint')
 const registerWithActivator = require('../lib/registration')
-const activateEndpoint = require('../lib/activation')
+const activateEndpoint = require('../lib/activation').activate
 const installDependencies = require('../lib/dependencies')
 const {shouldLoadFromCache} = require('../lib/downloadasset');
 /* GET home page. */

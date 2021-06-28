@@ -9,6 +9,7 @@ const createError = require('http-errors');
 const pkg = require('./package.json');
 const log = require('./lib/logger')
 const {shouldLoadFromCache} = require('./lib/downloadasset')
+const {logExecutorError} = require('./lib/activation')
 const executor = require('./lib/executor');
 const registerWithActivator = require('./lib/registration');
 const indexRouter = require('./routes/index').router;
@@ -101,15 +102,20 @@ function loadFilesFromContext() {
     if (Object.keys(global.cxt.map).length > 0) {
         for (let key in global.cxt.map) {
             if (global.cxt.map[key].status === 'Activated') {
-                const exec = Object.create(executor);
                 let entryFile = global.cxt.map[key].entry;
                 if (fs.existsSync(entryFile)) {
-                    log('info', 'Loading file from cache: ' + entryFile)
-                    exec.init(entryFile);
-                    global.cxt.map[key].executor = exec;
+                    log('info', 'Found artifact: ' + entryFile)
+                    log('info', 'Using the cached endpoint ' + key);
+                    const exec = Object.create(executor);
+                    try{
+                        exec.init(entryFile);
+                        global.cxt.map[key].executor = exec;
+                    } catch (error){
+                        logExecutorError(error);
+                        deleteCacheEntry(key);
+                    }
                 } else {
-                    log('info', 'Deleting invalid entry cache: ' + key)
-                    delete global.cxt.map[key]
+                    deleteCacheEntry(key);
                 }
             }
         }
@@ -132,6 +138,11 @@ function createErrorHandlers() {
 function assignId(req, res, next) {
     req.id = uuidv4();
     next();
+}
+
+function deleteCacheEntry(key) {
+    log('info', 'Deleting invalid entry cache: ' + key)
+    delete global.cxt.map[key]
 }
 
 module.exports = app;

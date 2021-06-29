@@ -8,7 +8,6 @@ const express = require('express');
 const createError = require('http-errors');
 const pkg = require('./package.json');
 const log = require('./lib/logger')
-const {shouldLoadFromCache} = require('./lib/downloadasset')
 const {logExecutorError} = require('./lib/activation')
 const executor = require('./lib/executor');
 const registerWithActivator = require('./lib/registration');
@@ -20,14 +19,14 @@ const environmentSelfUrl = require('./lib/paths').environmentSelfUrl;
 const shelfPath = require('./lib/paths').shelfPath;
 const contextFilePath = require('./lib/paths').contextFilePath;
 const localCachePath = require('./lib/paths').localCachePath
-let cachingEnabled = process.env.KGRID_NODE_LOAD_FROM_CACHE;
+const shouldLoadFromCache = require('./lib/paths').shouldLoadFromCache
 
 let app = express();
 log('info', `KGrid Node Runtime ${pkg.version}`);
 log('info', `Kgrid Proxy Adapter URL: ${kgridProxyAdapterUrl}`)
 log('info', `Kgrid Node environment URL: ${environmentSelfUrl}`)
 log('info', `Kgrid Node Shelf path: ${shelfPath}`)
-log('info', `Kgrid Node endpoint caching enabled: ${cachingEnabled}`)
+log('info', `Kgrid Node endpoint caching enabled: ${shouldLoadFromCache()}`)
 
 checkPaths();
 setUpExpressApp();
@@ -59,7 +58,7 @@ function setUpExpressApp() {
     app.locals.info.engine = "node";
     app.locals.info.status = "up";
     app.locals.info.shelfPath = shelfPath;
-    app.locals.info.cachingEnabled = cachingEnabled;
+    app.locals.info.cachingEnabled = shouldLoadFromCache();
     app.locals.needsRefresh = true;
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'pug');

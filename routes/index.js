@@ -8,7 +8,8 @@ const findEndpoint = require('../lib/findEndpoint')
 const registerWithActivator = require('../lib/registration')
 const activateEndpoint = require('../lib/activation').activate
 const installDependencies = require('../lib/dependencies')
-const {shouldLoadFromCache} = require('../lib/downloadasset');
+const {shouldLoadFromCache} = require('../lib/paths');
+
 /* GET home page. */
 router.get('/', function (req, res) {
     res.render('index', {title: 'KGrid Node Runtime', tagline: 'Running Knowledge Objects written in JavaScript'});

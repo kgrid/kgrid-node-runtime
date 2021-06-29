@@ -53,7 +53,7 @@ Displays a list of the activated endpoints in the engine.
 - The interval (in seconds) of the heartbeat when this runtime will ping and try to reconnect to the activator. The value of 0 or negative number will disable the heartbeat.
 - Default value:`30`
 
-### `KGRID_NODE_LOAD_FROM_CACHE` (What is the startup behavior?)
+### `KGRID_NODE_LOAD_FROM_CACHE`
 - Sets if the objects are cached or overwritten on each activation call
     - `true` means the node runtime will attempt to load endpoints from its internal cache on startup, and when receiving activation messages
     - `false` means the node runtime will always load endpoints new, and anything in its cache will be overwritten on startup, or when receiving activation messages.

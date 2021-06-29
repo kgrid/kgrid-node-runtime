@@ -7,6 +7,7 @@ Make sure you have [node.js](https://nodejs.org) 11.0 or later installed. To dow
 ```
 npm install -g @kgrid/noderuntime
 ```
+- Note: This runtime stores all endpoints received from activation in `current directory/kgrid_node/node` and any node modules required by deployed endpoints will be stored in `current directory/kgrid_node/node_modules`. Because of this, it will require write access to its current directory.
 
 ## Installation from an image:
 

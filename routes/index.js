@@ -6,8 +6,9 @@ const kgridProxyAdapterUrl = require('../lib/paths').kgridProxyAdapterUrl
 const shelfPath = require('../lib/paths').shelfPath
 const findEndpoint = require('../lib/findEndpoint')
 const registerWithActivator = require('../lib/registration')
-const activateEndpoint = require('../lib/activation')
+const activateEndpoint = require('../lib/activation').activate
 const installDependencies = require('../lib/dependencies')
+const {shouldLoadFromCache} = require('../lib/paths');
 
 /* GET home page. */
 router.get('/', function (req, res) {
@@ -56,22 +57,15 @@ router.post('/endpoints', function (req, res) {
         result.uri = id;
         result.activated = (new Date()).toString();
         result.status = "Activated"
-        if (global.cxt.map[id] === undefined) {
-            global.cxt.map[id] = {'isProcessing': true}
-            activateEndpoint(baseUrl, id, req, res, result);
+
+        if (global.cxt.map[id] && global.cxt.map[id].isProcessing) {
+            result.status = 'Endpoint is in processing, try again later.';
+            res.status(503).json(result);
+        } else if (global.cxt.map[id] && shouldLoadFromCache()) {
+            log('info', 'Using the cached endpoint ' + id);
+            res.json(result);
         } else {
-            if (process.env.KGRID_NODE_CACHE_STRATEGY === "always") {
-                res.json(result);
-            } else if (process.env.KGRID_NODE_CACHE_STRATEGY === "use_checksum" && global.cxt.map[id].checksum
-                && global.cxt.map[id].checksum === req.body.checksum) {
-                res.json(result);
-            } else if (global.cxt.map[id].isProcessing) {
-                result.status = 'Endpoint is in processing, try again later.';
-                res.status(503).json(result);
-            } else {
-                global.cxt.map[id].isProcessing = true;
-                activateEndpoint(baseUrl, id, req, res, result);
-            }
+            activateEndpoint(baseUrl, id, req, res, result);
         }
     }
 });

@@ -8,6 +8,7 @@ const express = require('express');
 const createError = require('http-errors');
 const pkg = require('./package.json');
 const log = require('./lib/logger')
+const {logExecutorError} = require('./lib/activation')
 const executor = require('./lib/executor');
 const registerWithActivator = require('./lib/registration');
 const indexRouter = require('./routes/index').router;
@@ -17,12 +18,15 @@ const kgridProxyAdapterUrl = require('./lib/paths').kgridProxyAdapterUrl;
 const environmentSelfUrl = require('./lib/paths').environmentSelfUrl;
 const shelfPath = require('./lib/paths').shelfPath;
 const contextFilePath = require('./lib/paths').contextFilePath;
+const localCachePath = require('./lib/paths').localCachePath
+const shouldLoadFromCache = require('./lib/paths').shouldLoadFromCache
 
 let app = express();
-
 log('info', `KGrid Node Runtime ${pkg.version}`);
-log('info', `Setting KGRID_PROXY_ADAPTER_URL to: ${kgridProxyAdapterUrl}`)
-log('info', `Setting KGRID_NODE_ENV_URL to: ${environmentSelfUrl}`)
+log('info', `Kgrid Proxy Adapter URL: ${kgridProxyAdapterUrl}`)
+log('info', `Kgrid Node environment URL: ${environmentSelfUrl}`)
+log('info', `Kgrid Node Shelf path: ${shelfPath}`)
+log('info', `Kgrid Node endpoint caching enabled: ${shouldLoadFromCache()}`)
 
 checkPaths();
 setUpExpressApp();
@@ -32,7 +36,7 @@ createErrorHandlers();
 const heartbeatInterval = process.env.KGRID_PROXY_HEARTBEAT_INTERVAL || 30;
 let registrationHeartbeat = heartbeats.createHeart(1000);
 registerWithActivator(app, true);
-registrationHeartbeat.createEvent(heartbeatInterval, function (count, last) {
+registrationHeartbeat.createEvent(heartbeatInterval, function () {
     registerWithActivator(app, false);
 })
 
@@ -53,6 +57,8 @@ function setUpExpressApp() {
     app.locals.info.version = pkg.version;
     app.locals.info.engine = "node";
     app.locals.info.status = "up";
+    app.locals.info.shelfPath = shelfPath;
+    app.locals.info.cachingEnabled = shouldLoadFromCache();
     app.locals.needsRefresh = true;
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'pug');
@@ -85,16 +91,39 @@ function setUpGlobalContext() {
             }
         },
     }
-
     global.cxt.map = require(contextFilePath)
+    if (shouldLoadFromCache()) {
+        loadFilesFromContext();
+    } else {
+        log('info', 'Invalidating Cache');
+        fs.removeSync(localCachePath);
+        fs.ensureFileSync(contextFilePath);
+        fs.writeJSONSync(contextFilePath, {}, {spaces: 4});
+    }
+}
+
+function loadFilesFromContext() {
     if (Object.keys(global.cxt.map).length > 0) {
         for (let key in global.cxt.map) {
             if (global.cxt.map[key].status === 'Activated') {
-                const exec = Object.create(executor);
-                exec.init(global.cxt.map[key].entry);
-                global.cxt.map[key].executor = exec;
+                let entryFile = global.cxt.map[key].entry;
+                if (fs.existsSync(entryFile)) {
+                    log('info', 'Found artifact: ' + entryFile)
+                    log('info', 'Using the cached endpoint ' + key);
+                    const exec = Object.create(executor);
+                    try {
+                        exec.init(entryFile);
+                        global.cxt.map[key].executor = exec;
+                    } catch (error) {
+                        logExecutorError(error);
+                        deleteCacheEntry(key);
+                    }
+                } else {
+                    deleteCacheEntry(key);
+                }
             }
         }
+        fs.writeJSONSync(contextFilePath, global.cxt.map, {spaces: 4});
     }
 }
 
@@ -113,6 +142,11 @@ function createErrorHandlers() {
 function assignId(req, res, next) {
     req.id = uuidv4();
     next();
+}
+
+function deleteCacheEntry(key) {
+    log('info', 'Deleting invalid entry cache: ' + key)
+    delete global.cxt.map[key]
 }
 
 module.exports = app;

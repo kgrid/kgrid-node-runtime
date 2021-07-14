@@ -20,7 +20,7 @@ npm install -g @kgrid/noderuntime
 Or
 - Use the following command to run the image on Windows:
 ```
- docker run -it -p :3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/kgrid-node-runtime
+ docker run -it -p 3000:3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/kgrid-node-runtime
 ```
 
 This starts the runtime pointed to an activator running on the same system at localhost:8080

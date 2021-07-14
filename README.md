@@ -11,16 +11,16 @@ npm install -g @kgrid/noderuntime
 
 ## Installation from an image:
 
-- Download the latest image from docker hub: `docker pull kgrid/noderuntime:#.#.#` where `#.#.#` is the latest version
+- Download the latest image from docker hub: `docker pull kgrid/kgrid-node-runtime:latest`
 
 - Use the following command to run the image on Linux:
 ```
- sudo docker run --network host kgrid/noderuntime
+ docker run --network host kgrid/kgrid-node-runtime
 ```
 Or
 - Use the following command to run the image on Windows:
 ```
- docker run -it -p :3000:3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/noderuntime
+ docker run -it -p :3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/kgrid-node-runtime
 ```
 
 This starts the runtime pointed to an activator running on the same system at localhost:8080
@@ -108,58 +108,10 @@ You would then execute this endpoint to see the code work:
 
 `POST <activator url>/<naan>/<name>/<api version>/<endpoint>`
 
-In this example: `POST <activator url>/hello/neighbor/1.0/welcome`
+In this example: `POST <activator url>/node/dependencies/1.0/welcome`
 ## Examples
 An example KO can be found in our [example collection](https://github.com/kgrid-objects/example-collection/releases/latest) here:
 [node/simple/1.0](https://github.com/kgrid-objects/example-collection/releases/latest/download/node-simple-v1.0.zip)
-
-
-## Build and Deploy a cloud native image
-
-### Build the image of kgrid-node-Runtime
-
-Use the following command to build the image:
-```
- sudo docker build -t kgrid/noderuntime .
-```
-
-### Push to DockerHub
-Use the following command to push the image:
-```
- sudo docker push kgrid/noderuntime:#.#.#
-```
-
-### Run the image locally
- Use the following command to run the image on Linux:
-```
- sudo docker run --network host kgrid/noderuntime
-```
-
- Use the following command to run the image on Windows:
-```
- docker run -it -p :3000:3000 -e KGRID_PROXY_ADAPTER_URL=http://host.docker.internal:8080 kgrid/noderuntime
-```
-
-### Pushing an image directly to Heroku
-1. Log in to Heroku by	`heroku login`
-
-1. Log in to Heroku Container Registry by `heroku container:login`
-
-1. Tag the image with (change #.#.# to version)
-   ```bash
-   docker tag <image> registry.heroku.com/<app>/web
-   ```
-   `<image>` will be `kgrid/noderuntime:###`
-
-1. Push to Heroku:
-   ```bash
-   docker push registry.heroku.com/<app>/web
-   ```
-1. Release the image so Heroku can start the deployment process
-   ```bash
-   heroku container:release web -a <app>
-   ```
-
 
 ## Important Notes
 - Editing the cache directly from the runtime's shelf will

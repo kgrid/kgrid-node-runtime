@@ -30,14 +30,14 @@ describe('POST /deployments', () => {
             "uri": "/99999/cp4mc9723s/v0.2.0/dosingrecommendation",
             "entry": "recommendation.js",
             "baseUrl": "https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/",
-            "artifact": ['https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-0.2.0.zip'
+            "artifact": ["https://github.com/kgrid-objects/cpic-collection/releases/download/2.0.0/99999-cp4mc9723sd-0.2.0.zip"
             ]
         }
         chai.request(server)
             .post('/endpoints')
             .send(input)
             .end((err, res) => {
-                res.should.have.status(404);
+                res.should.have.status(400);
                 done();
             });
     });

@@ -1,0 +1,320 @@
+{
+  "id": "cvd",
+  "filenames": {
+    "age": [
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95
+    ]
+  },
+  "columns": {
+    "gender": [
+      0,
+      1
+    ],
+    "race": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "totalcholesterol": [
+      150,
+      200,
+      250
+    ],
+    "hdl": [
+      30,
+      40,
+      50,
+      60,
+      70,
+      80
+    ],
+    "ldl": [
+      80,
+      120,
+      160
+    ],
+    "sbp": [
+      110,
+      130,
+      150,
+      170
+    ],
+    "htmedication": [
+      0,
+      1
+    ],
+    "smoker": [
+      0,
+      1
+    ],
+    "diabetes": [
+      0,
+      1
+    ],
+    "bmi": [
+      17.0,
+      22.0,
+      27.0,
+      32.0
+    ]
+  },
+  "files": [
+    {
+      "name": "CVD Table_0050.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0051.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0052.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0053.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0054.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0055.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0056.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0057.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0058.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0059.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0060.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0061.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0062.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0063.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0064.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0065.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0066.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0067.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0068.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0069.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0070.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0071.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0072.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0073.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0074.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0075.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0076.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0077.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0078.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0079.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0080.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0081.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0082.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0083.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0084.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0085.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0086.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0087.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0088.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0089.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0090.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0091.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0092.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0093.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0094.csv",
+      "offset": 0
+    },
+    {
+      "name": "CVD Table_0095.csv",
+      "offset": 0
+    }
+  ],
+  "outputs": [
+    {
+      "id": "aspirin",
+      "field": "aspirin"
+    },
+    {
+      "id": "bpmedicine",
+      "field": "bpmedicine"
+    },
+    {
+      "id": "lowerbp",
+      "field": "lowerbp"
+    },
+    {
+      "id": "cholmedicine",
+      "field": "cholmedicine"
+    },
+    {
+      "id": "bpcholesterol",
+      "field": "bpcholesterol"
+    }
+  ],
+  "debug": true,
+  "dataset_full": true,
+  "csv_with_header_row": true,
+  "datatype": "Test",
+  "updatedOn": "20201111"
+}

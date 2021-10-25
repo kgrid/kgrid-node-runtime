@@ -1,0 +1,20 @@
+{
+    "99999/cvd/1.0/qalygain": {
+        "entry": "/home/a/Projects/kgrid/kgrid-node-runtime/kgrid_node/cvd/src/index.js",
+        "executor": {},
+        "activated": "2021-10-25T20:00:53.839Z",
+        "id": "99999/cvd/1.0/qalygain",
+        "status": "Activated",
+        "isProcessing": false
+    },
+    "99999/executive/1.0/process": {
+        "entry": "/home/a/Projects/kgrid/kgrid-node-runtime/kgrid_node/executive/src/index.js",
+        "executor": {
+            "async": true
+        },
+        "activated": "2021-10-25T20:04:10.914Z",
+        "id": "99999/executive/1.0/process",
+        "status": "Activated",
+        "isProcessing": false
+    }
+}

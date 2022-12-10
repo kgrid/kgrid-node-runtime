@@ -29,7 +29,7 @@
     "cors": "^2.8.5",
     "debug": "~2.6.9",
     "download": "^7.1.0",
-    "express": "~4.16.1",
+    "express": "~4.17.3",
     "fs-extra": "^8.1.0",
     "hashids": "^2.2.2",
     "heartbeats": "^5.0.1",
